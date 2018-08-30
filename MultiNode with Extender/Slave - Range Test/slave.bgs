@@ -1,0 +1,143 @@
+	
+#*** list of handles for soft timer ****
+const UPDATE_GATT = 0
+const REPEAT = 0
+const DISCONNECT = 1
+const DOWORK = 2
+const SOFT_TIME = 5000
+
+#*** list of variables ****
+dim conHandle
+dim result1
+dim ADC_DATA(4) 
+
+dim conn
+dim rssi
+
+dim i2c_result
+dim i2c_data_len
+dim i2c_data(8)
+
+dim a
+dim count
+
+
+
+#********** System boot event listener ***********************
+#*************************************************************
+#***************** Main Program   ****************************
+#*************************************************************
+#initialize gap mod, bonding and start free running times on system boot
+event system_boot(major,minor,patch,build,ll_version,protocol,hw)
+    
+	# Initialize IOs
+	#************** port 0 *************************************
+	call hardware_io_port_config_direction(0, $10)
+    call hardware_io_port_write(0,$10,$00)
+
+	# set bondable mode (allow pairing)
+	call sm_set_bondable_mode(1)
+    # set advertisement parameters
+    call gap_set_adv_parameters(32, 32, 7)
+    # start advertising mode
+	call gap_set_mode(gap_general_discoverable, gap_undirected_connectable)
+   
+	
+
+end
+
+
+
+ 
+
+#********** Timer event listener ****************************************************************
+#*************************************************************************************************
+event hardware_soft_timer(handle)
+	
+	if handle = UPDATE_GATT
+	
+
+
+
+		call attributes_write(temperatureA, 0, 1, count)
+		count = count + 1
+
+	
+	end if
+	
+	
+    if handle = DISCONNECT
+        # disconnect 
+		call connection_disconnect(conHandle)
+		
+		 # set display to command mode
+        call hardware_io_port_write(0,$80,$00) # RS pin
+        call hardware_io_port_write(1,$40,$00) # CS pin
+        call hardware_io_port_config_direction(0,$94)
+        call hardware_io_port_config_direction(1,$68)
+
+        # initialize the display
+        call hardware_spi_transfer(0,11,"\x30\x30\x30\x39\x14\x56\x6d\x70\x0c\x06\x01")
+		# set display to data mode
+        call hardware_io_port_write(0,$80,$80)
+        # write message to the display
+        call hardware_spi_transfer(0,12,"DISCONNECTED")
+    end if
+	
+    if handle = DOWORK
+        # set display to command mode
+        call hardware_io_port_write(0,$80,$00) # RS pin
+        call hardware_io_port_write(1,$40,$00) # CS pin
+        call hardware_io_port_config_direction(0,$94)
+        call hardware_io_port_config_direction(1,$68)
+
+        # initialize the display
+        call hardware_spi_transfer(0,11,"\x30\x30\x30\x39\x14\x56\x6d\x70\x0c\x06\x01")
+        
+        # set display to data mode
+        call hardware_io_port_write(0,$80,$80)
+        # write message to the display
+        call hardware_spi_transfer(0,9,"CONNECTED")
+			
+    end if
+end
+# Connection status listener
+#*************************************************************************************************
+event connection_status(connection, flags, address, address_type, conn_interval, timeout, latency, bonding)
+
+	# connection status flag
+	# bit 0: connection exists $1
+	# bit 1: connection is encrypted $2
+	# bit 2: new connection has been created $4
+	# bit 3: connection parameters have changed $8
+	# check for bit 2 (ox4)
+	if (flags & $4) then
+		# save connection handle
+		conHandle = connection
+        
+        # This signal is used for synchronization purpose
+		# Set P0_4 pin High (relay output is active)
+		call hardware_io_port_write(0,$10,$10)
+        
+        # disconnect after 1s
+		call hardware_set_soft_timer(SOFT_TIME, DOWORK, 1)
+		# start a timer to read accelerometer data
+		call hardware_set_soft_timer(32768, UPDATE_GATT, REPEAT)
+		#call hardware_set_soft_timer(SOFT_TIME, DISCONNECT, 1)
+	end if
+	
+end
+
+# Disconnect event listener
+#*************************************************************************************************
+event connection_disconnected(connection, reason)
+	call hardware_io_port_write(0,$10,$10) 
+	call hardware_set_soft_timer(SOFT_TIME, DISCONNECT, 1)
+    # Set P0_4 pin LOW (relay output is inactive)
+	call hardware_io_port_write(0,$10,$00)
+	# go back to advertising mode
+	call gap_set_mode(gap_general_discoverable, gap_undirected_connectable)
+end
+
+
+

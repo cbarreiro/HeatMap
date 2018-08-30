@@ -1,7 +1,3 @@
-
-#Delete this richard
-
->>>>>>> afc3254a3618fc0874b5b58e3cbe3810ab8ba87f
 #*** Constants ****
 const UPDATE_GATT = 0
 const REPEAT = 1

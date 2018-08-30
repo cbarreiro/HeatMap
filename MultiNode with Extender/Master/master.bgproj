@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+	<!-- project config -->
+<project>	
+
+	<config in="master_config.xml" /> 
+		<!-- defines gatt data base -->
+	<gatt in="master_gatt.xml" />	
+		<!-- defines hardware config -->
+	<hardware in="master_hardware.xml" />	
+		<!-- define file with BGScrip code -->
+	<script in="master.bgs" /> 
+	
+
+		<!-- outputs project hex file -->
+	<image out="out.hex" />	
+		<!-- hardware type -->
+	<device type="ble121lr-m256k" />  
+		<!-- firmware update method -->
+	<boot fw="bootuart" /> 
+</project>

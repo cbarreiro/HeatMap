@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<config>
+	<connections value="3" />
+	<throughput optimize="performance" />
+	<script_timeout value="0" />
+</config>	

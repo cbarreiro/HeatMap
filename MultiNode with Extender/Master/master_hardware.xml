@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- hardware configuration for On Off sensor light version -->
+<hardware>
+
+	<!-- enable sleep mode oscillator. ppm MUST be 30 -->
+	<sleeposc enable="true" ppm="30" /> 
+	
+	<!-- BLE113 does not have USB interface, -->
+	<usb enable="false" endpoint="none" />
+	
+	<!-- enable script mode -->
+	<script enable="true" />
+	
+	<!-- set TX power to maximum (~ +3 dBm) -->
+	<txpower power="15" bias="5" />
+	
+	<pmux regulator_pin="7"/>
+	
+	<!--wakeup_pin enable="true" port="0" pin="7" state="up" />-->
+	
+	<!-- 
+	By default all the ports except P1_0 and P1_1 are configured as inputs with pull-ups. 
+	P1_0 and P1_1 should be configured as outputs or pulled up externally.
+	All unused I/O pins should be configured as input with a pull-up resistor.
+	-->
+	<!-- enable port 0: P0_2, P0_3 with pin pull-up resistors for buttons/switches -->
+	<port index="0" tristatemask="0" pull="up" />
+	<!-- enable port 1: P1_2, P1_3, P1_4 with pin pull-down resistors for LEDs -->
+    <port index="1" tristatemask="0" pull="down" />
+    <!-- enable port 2: P2_0 with pin pull-down resistor to read on/off sensor  -->
+	<port index="2" tristatemask="0" pull="down" />
+
+	<usart channel="0" mode="spi_master" alternate="2" polarity="positive" phase="1"
+	endianness="msb" baud="57600" endpoint="none" />
+	
+	<usart mode="uart" channel="1" alternate="1" baud="9600" endpoint="none" flow="false" /> 
+    <script enable="true" />
+	
+</hardware>

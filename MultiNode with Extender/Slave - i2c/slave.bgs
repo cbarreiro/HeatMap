@@ -1,0 +1,308 @@
+	
+#*** list of handles for soft timer ****
+const UPDATE_GATT = 0
+const REPEAT = 0
+const DISCONNECT = 1
+const DOWORK = 2
+const SOFT_TIME = 5000
+
+const SLAVE_ADDRESS = $90
+const RESOLUTION = $60
+
+
+const TempRegister = $00
+const ConfigRegister = $01
+const TempLow = $02
+const TempHigh = $03
+
+
+#*** list of variables ****
+dim conHandle
+dim result1
+dim ADC_DATA(4) 
+
+dim send_aa(2)
+
+dim print_data(16)
+dim conn
+dim rssi
+dim message1(16)
+dim i2c_result
+dim i2c_data_len
+dim i2c_data(2)
+dim message(16)
+dim a
+
+dim TmpHigh(8)
+dim TmpLow(1)
+dim pos
+
+dim digits
+#************** function for initializing LDC **************
+# See NHD-C0216CZ-FSW-FBW-3V3 data sheet
+procedure init_lcd()
+	#************** set the display to command mode **************
+	# Set P1_0,1,2 pins HIGH
+	# (port=1, pin selection mask = 0b00000111, pin logic mask = 0b00000001)
+	# NOTE: logic value parameter is also a bitmask, not a single 0/1 to apply to all selected pins
+	call hardware_io_port_write(1,$7,$1)
+	call hardware_io_port_config_direction(1,$7)
+	#initialize the display
+	# 0x30: wake up
+	# 0x39: function set
+	# 0x14: internal oscillator frequency
+	# 0x56: power control
+	# 0x6d: follower control
+	# 0x70: contrast
+	# 0x0c: display on
+	# 0x06: entry mode
+	# 0x01: clear
+	call hardware_spi_transfer(0,11,"\x30\x30\x30\x39\x14\x56\x6d\x70\x0c\x06\x01")
+end
+
+#************** function for displaying on LCD **************
+#****  message(0:16) : has to be a string with length 16
+#****  line : LCD has two 16 character lines to be selected from
+procedure write_lcd(line, message999())
+	#************** set the display to command mode **************
+	# Set P1_0 HIGH and P1_1,2 pins LOW
+	# (port=1, pin selection mask = 0b00000111, pin logic mask = 0b00000001)
+	# NOTE: logic value parameter is also a bitmask, not a single 0/1 to apply to all selected pins
+	call hardware_io_port_write(0,$80,$00) # RS pin
+	call hardware_io_port_write(1,$40,$00) # CS pin
+	call hardware_io_port_config_direction(0,$94)
+	call hardware_io_port_config_direction(1,$68)
+
+	# initialize the display
+	# 0x30: wake up
+	# 0x39: function set
+	# 0x14: internal oscillator frequency
+	# 0x56: power control
+	# 0x6d: follower control
+	# 0x70: contrast
+	# 0x0c: display on
+	# 0x06: entry mode
+	# 0x01: clear
+	 call hardware_spi_transfer(0,10,"\x30\x30\x30\x39\x14\x56\x6d\x70\x0c\x06")
+	
+	
+	# Change display cursor position
+	if line = 1 then
+		call hardware_spi_transfer(0,1,"\x80")
+	else
+		# Change display cursor position (second row)
+		call hardware_spi_transfer(0,1,"\xc0")
+	end if
+	#set the display to data mode
+	# Set P1_0,1,2 pins HIGH
+	# (port=1, pin selection mask = 0b00000111, pin logic mask = 0b00000111)
+	# NOTE: logic value parameter is also a bitmask, not a single 0/1 to apply to all selected pins
+	call hardware_io_port_write(0,$80,$80)
+	#Write temperature to display
+	call hardware_spi_transfer(0,16,message999(0:16))
+end
+
+
+# Read a register value from the accelerometer
+procedure GetTemperature()
+	call hardware_i2c_write(SLAVE_ADDRESS, 1, 2, $00)
+	# set pointer to the register value to be read with a repeated start condition
+	# address, stop (if nonzero, send I2C stop condition after transmission), data_len, data_data
+	#call hardware_i2c_write(SLAVE_ADDRESS, 0, 1, TempRegister)
+	# read the register value
+	call hardware_i2c_read(SLAVE_ADDRESS, 1, 2)(i2c_result, i2c_data_len, i2c_data(0:i2c_data_len))
+
+	
+	message1(0:1) = (i2c_data_len / 100) + 48
+	message1(1:1) = (i2c_data_len / 10) + (i2c_data_len / -100 * 10) + 48
+	message1(2:1) = i2c_data_len + (i2c_data_len / 10 * -10) + 48
+
+	call write_lcd(2, message1(0:16))
+	
+	
+	TmpHigh(0:1) = i2c_data(0:1)
+	
+	TmpLow(0:1) = i2c_data(1:1)
+	
+#	if TmpHigh(0:1) = $40 then
+#		pos = 0
+#	else
+#		pos = 1
+#	end
+	
+	#TmpHigh(0:1) = TmpHigh(0:1) & $7F
+#	TmpLow(0:1) = TmpLow(0:1)&F0
+
+#	TmpLow(0:1) = TmpLow(0:1) >> 4
+	
+#	digits = TmpLow(0:1)*
+	
+	print_data(0:1) = (TmpHigh(0:1)/$10) + 48 + ((TmpHigh(0:1)/$10)/10*7)
+	print_data(1:1) = (TmpHigh(0:1)&$f) + 48 + ((TmpHigh(0:1)&$f )/10*7)
+	print_data(2:1) = " "
+	print_data(3:1) = (TmpLow(0:1)/$f) + 48 + ((TmpLow(0:1)/$f)/10*7)
+	#print_data(3:1) = (TmpLow(0:1)&$f) + 48 + ((TmpLow(0:1)&$f )/10*7)
+
+end
+
+# Write a register value to accelerometer
+procedure WriteTempRegister(register, value)
+
+	# combine the register and value to make data
+	i2c_data(0:1) = register
+	i2c_data(1:1) = value
+	# write data to the register
+	call hardware_i2c_write(SLAVE_ADDRESS, 1, 2, i2c_data(0:2))
+end	
+
+procedure TempConfig()
+	# call hardware_i2c_write(address, stop, data_len, data_data)(written)
+	# read the current contents of the CTRL1 register
+	
+	send_aa(0:1) = $01
+	send_aa(1:1) = $60
+	
+	call hardware_i2c_write(SLAVE_ADDRESS, 1, 2, send_aa(0:2))
+	
+	
+
+end
+
+
+
+#********** System boot event listener ***********************
+#*************************************************************
+#***************** Main Program   ****************************
+#*************************************************************
+#initialize gap mod, bonding and start free running times on system boot
+event system_boot(major,minor,patch,build,ll_version,protocol,hw)
+    
+	
+	# Initialize IOs
+	#************** port 0 *************************************
+	call hardware_io_port_config_direction(0, $10)
+    call hardware_io_port_write(0,$10,$00)
+
+	call init_lcd()
+	# set bondable mode (allow pairing)
+	call sm_set_bondable_mode(1)
+    # set advertisement parameters
+    call gap_set_adv_parameters(32, 32, 7)
+    # start advertising mode
+	call gap_set_mode(gap_general_discoverable, gap_undirected_connectable)
+	#call TempConfig() # sets resolution of the sensor
+end
+
+ 
+
+#********** Timer event listener ****************************************************************
+#*************************************************************************************************
+event hardware_soft_timer(handle)
+	
+	if handle = UPDATE_GATT
+	
+
+	
+	
+	
+	
+	
+		# read accelerometer data (X, Y and Z)
+		# register and number of bytes
+		call GetTemperature()
+		
+		
+
+
+		message(0:8) = "Data:   "
+		
+		message(10:4) = print_data(0:4)
+		call write_lcd(1, message(0:16))
+		
+		call attributes_write(temperatureA, 0, 4, print_data(0:4))
+		
+
+		# determine temperatureA from accelerometer data
+		# threshold is at +/- 0.8g for all three axis corresponding to $33/$CC respectively
+		# using 8-bit twos compliment data with 16 mg per bit resolution
+		
+		####
+	
+	end if
+	
+	
+    if handle = DISCONNECT
+        # disconnect 
+		call connection_disconnect(conHandle)
+		
+		 # set display to command mode
+        call hardware_io_port_write(0,$80,$00) # RS pin
+        call hardware_io_port_write(1,$40,$00) # CS pin
+        call hardware_io_port_config_direction(0,$94)
+        call hardware_io_port_config_direction(1,$68)
+
+        # initialize the display
+        call hardware_spi_transfer(0,11,"\x30\x30\x30\x39\x14\x56\x6d\x70\x0c\x06\x01")
+		# set display to data mode
+        call hardware_io_port_write(0,$80,$80)
+        # write message to the display
+        call hardware_spi_transfer(0,12,"DISCONNECTED")
+    end if
+	
+    if handle = DOWORK
+        # set display to command mode
+        call hardware_io_port_write(0,$80,$00) # RS pin
+        call hardware_io_port_write(1,$40,$00) # CS pin
+        call hardware_io_port_config_direction(0,$94)
+        call hardware_io_port_config_direction(1,$68)
+
+        # initialize the display
+        call hardware_spi_transfer(0,11,"\x30\x30\x30\x39\x14\x56\x6d\x70\x0c\x06\x01")
+        
+        # set display to data mode
+        call hardware_io_port_write(0,$80,$80)
+        # write message to the display
+        call hardware_spi_transfer(0,9,"CONNECTED")
+			
+    end if
+end
+# Connection status listener
+#*************************************************************************************************
+event connection_status(connection, flags, address, address_type, conn_interval, timeout, latency, bonding)
+
+	# connection status flag
+	# bit 0: connection exists $1
+	# bit 1: connection is encrypted $2
+	# bit 2: new connection has been created $4
+	# bit 3: connection parameters have changed $8
+	# check for bit 2 (ox4)
+	if (flags & $4) then
+		# save connection handle
+		conHandle = connection
+        
+        # This signal is used for synchronization purpose
+		# Set P0_4 pin High (relay output is active)
+		call hardware_io_port_write(0,$10,$10)
+        
+        # disconnect after 1s
+		call hardware_set_soft_timer(SOFT_TIME, DOWORK, 1)
+		# start a timer to read accelerometer data
+		call hardware_set_soft_timer(16384, UPDATE_GATT, REPEAT)
+		#call hardware_set_soft_timer(SOFT_TIME, DISCONNECT, 1)
+	end if
+	
+end
+
+# Disconnect event listener
+#*************************************************************************************************
+event connection_disconnected(connection, reason)
+	call hardware_io_port_write(0,$10,$10) 
+	call hardware_set_soft_timer(SOFT_TIME, DISCONNECT, 1)
+    # Set P0_4 pin LOW (relay output is inactive)
+	call hardware_io_port_write(0,$10,$00)
+	# go back to advertising mode
+	call gap_set_mode(gap_general_discoverable, gap_undirected_connectable)
+end
+
+
+

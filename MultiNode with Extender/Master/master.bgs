@@ -1,0 +1,391 @@
+#*** list of handles for soft timer ****
+const DISCONNECT = 1
+const CONNECTED = 2
+const MIN_CON_INTERVAL = 600 # CI/# of slaves * 2.5
+const MAX_CON_INTERVAL = 600
+# ms  | CI
+# 7.5 | 6
+# 10  | 8
+# 12.5| 10
+# 15  | 12
+# 20  | 16 ## min
+# 25  | 20
+# 30  | 24
+# 35  | 28
+# 40  | 32 ##
+# 45  | 36
+# 50  | 40
+# 55  | 44
+# 60  | 48 ##
+# 65  | 52
+# 70  | 56
+# 75  | 60
+# 80  | 64 ##
+# 85  | 68
+# 90  | 72
+# 95  | 76
+# 100 | 80 ##
+
+
+const SOFT_TIME = 50
+const TIMEOUT = 200 # min 10 to 3200 // 10 ms    timeout =  (1+latency) * conn interval max(ms) * 2
+const READ = 3
+const LATENCY = 0 # LATNECY X CI < TIMEOUT
+
+const SLAVE_WRITE = 500
+const SLAVE0 = 10
+const SLAVE2 = 11
+const SLAVE3 = 12
+const SLAVE5 = 13
+const SLAVE6 = 14
+const SLAVEA = 15
+const SLAVEB = 16
+const SLAVENOTAG = 17
+
+const SLAVE_READ = 500
+
+dim conHandle(9)
+dim slave
+dim message(16)
+dim t(16)
+dim ServerValue(9)
+dim SlaveA
+dim SlaveB
+dim SlaveC
+dim SlaveD
+dim message3(16)
+dim value_len1
+dim message2(16)
+dim val1
+dim val2
+dim val3
+dim loop_count
+dim loop_size
+
+#*** UART CONTROL
+#const Message = 0	# off
+const Message = 1	# on
+
+dim Slave_Whitelist0(6)
+dim Slave_Whitelist2(6)
+dim Slave_Whitelist3(6)
+dim Slave_Whitelist5(6)
+dim Slave_Whitelist6(6)
+dim Slave_WhitelistA(6)
+dim Slave_WhitelistB(6)
+dim Slave_WhitelistNotag(6)
+
+# "\x45\x31\x15\x80\x07\x00"	# Slave 0
+# "\x8b\xc6\xc2\x80\x07\x00" 	# Slave 2
+# "\x92\xc6\xc2\x80\x07\x00"    # Slave 3
+# "\x87\xc6\xc2\x80\x07\x00"	# Slave 5
+# "\xda\x3b\x15\x80\x07\x00"	# Slave 6
+# "\x99\xc6\xc2\x80\x07\x00"	# Slave A
+# "\xb1\x3a\x15\x80\x07\x00"	# Slave B
+# "\x15\x4b\xec\x80\x07\x00"	# Slave no tag
+
+
+
+
+#************** function for initializing LDC **************
+# See NHD-C0216CZ-FSW-FBW-3V3 data sheet
+procedure init_lcd()
+	#************** set the display to command mode **************
+	# Set P1_0,1,2 pins HIGH
+	# (port=1, pin selection mask = 0b00000111, pin logic mask = 0b00000001)
+	# NOTE: logic value parameter is also a bitmask, not a single 0/1 to apply to all selected pins
+	call hardware_io_port_write(1,$7,$1)
+	call hardware_io_port_config_direction(1,$7)
+	#initialize the display
+	# 0x30: wake up
+	# 0x39: function set
+	# 0x14: internal oscillator frequency
+	# 0x56: power control
+	# 0x6d: follower control
+	# 0x70: contrast
+	# 0x0c: display on
+	# 0x06: entry mode
+	# 0x01: clear
+	call hardware_spi_transfer(0,11,"\x30\x30\x30\x39\x14\x56\x6d\x70\x0c\x06\x01")
+end
+
+#************** function for displaying on LCD **************
+#****  message(0:16) : has to be a string with length 16
+#****  line : LCD has two 16 character lines to be selected from
+procedure write_lcd(line, message1())
+	#************** set the display to command mode **************
+	# Set P1_0 HIGH and P1_1,2 pins LOW
+	# (port=1, pin selection mask = 0b00000111, pin logic mask = 0b00000001)
+	# NOTE: logic value parameter is also a bitmask, not a single 0/1 to apply to all selected pins
+	call hardware_io_port_write(0,$80,$00) # RS pin
+	call hardware_io_port_write(1,$40,$00) # CS pin
+	call hardware_io_port_config_direction(0,$94)
+	call hardware_io_port_config_direction(1,$68)
+
+	# initialize the display
+	# 0x30: wake up
+	# 0x39: function set
+	# 0x14: internal oscillator frequency
+	# 0x56: power control
+	# 0x6d: follower control
+	# 0x70: contrast
+	# 0x0c: display on
+	# 0x06: entry mode
+	# 0x01: clear
+	 call hardware_spi_transfer(0,10,"\x30\x30\x30\x39\x14\x56\x6d\x70\x0c\x06")
+	
+	
+	# Change display cursor position
+	if line = 1 then
+		call hardware_spi_transfer(0,1,"\x80")
+	else
+		# Change display cursor position (second row)
+		call hardware_spi_transfer(0,1,"\xc0")
+	end if
+	#set the display to data mode
+	# Set P1_0,1,2 pins HIGH
+	# (port=1, pin selection mask = 0b00000111, pin logic mask = 0b00000111)
+	# NOTE: logic value parameter is also a bitmask, not a single 0/1 to apply to all selected pins
+	call hardware_io_port_write(0,$80,$80)
+	#Write temperature to display
+	call hardware_spi_transfer(0,16,message(0:16))
+end
+
+
+
+
+#**************main program**************
+event system_boot(major,minor,patch,build,ll_version,protocol,hw)
+	call init_lcd()
+	call system_whitelist_clear()
+
+	Slave_Whitelist0(0:6)=		"\x45\x31\x15\x80\x07\x00"	# Slave 0
+	Slave_Whitelist2(0:6)=		"\x8b\xc6\xc2\x80\x07\x00" 	# Slave 2
+	Slave_Whitelist3(0:6)=		"\x92\xc6\xc2\x80\x07\x00"  # Slave 3
+	Slave_Whitelist5(0:6)=		"\x87\xc6\xc2\x80\x07\x00"	# Slave 5
+	Slave_Whitelist6(0:6)=		"\xda\x3b\x15\x80\x07\x00"	# Slave 6
+	Slave_WhitelistA(0:6)=		"\x99\xc6\xc2\x80\x07\x00"	# Slave A
+	Slave_WhitelistB(0:6)=		"\xb1\x3a\x15\x80\x07\x00"	# Slave B
+	Slave_WhitelistNotag(0:6)=	"\x15\x4b\xec\x80\x07\x00"	# Slave no tag
+
+	#call system_whitelist_append(Slave_Whitelist0(0:6), 0 )
+	call system_whitelist_append(Slave_Whitelist2(0:6), 0 )
+	#call system_whitelist_append(Slave_Whitelist3(0:6), 0 )
+	call system_whitelist_append(Slave_Whitelist5(0:6), 0 )
+	call system_whitelist_append(Slave_Whitelist6(0:6), 0 )
+	#call system_whitelist_append(Slave_WhitelistA(0:6), 0 )
+	#call system_whitelist_append(Slave_WhitelistB(0:6), 0 )
+	#call system_whitelist_append(Slave_WhitelistNotag(0:6), 0 )
+	
+	#*********** UART MESSAGE*******************
+	if Message = 1
+		message2(0:6) = "booted"
+		call system_endpoint_tx(system_endpoint_uart1, 6, message2(0:6))		
+		call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")	
+	end if
+
+	call gap_connect_selective(MIN_CON_INTERVAL, MAX_CON_INTERVAL, TIMEOUT, LATENCY)
+end
+
+#***************** Connection status listener ****************************
+event connection_status(connection, flags, address, address_type, conn_interval, timeout, latency, bonding)
+		call gap_end_procedure()
+	if (flags & $4) then
+		
+		#*********** UART MESSAGE*******************
+		if Message = 1
+			message2(0:16) = "Connection estab"
+			call system_endpoint_tx(system_endpoint_uart1, 16, message2(0:16))		
+			call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")		
+		end if
+		
+		if address(0:1) = $45 
+			conHandle(0:1) = connection
+			call hardware_set_soft_timer(SLAVE_WRITE, SLAVE0, 1) 
+		end if
+		if address(0:1) = $8b 
+			conHandle(1:1) = connection
+			call hardware_set_soft_timer(SLAVE_WRITE, SLAVE2, 1) 
+			#*********** UART MESSAGE*******************
+			if Message = 1
+				message2(0:16) = "Connect Slave D "
+				call system_endpoint_tx(system_endpoint_uart1, 16, message2(0:16))		
+				call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
+			end if
+		end if
+		if address(0:1) = $92 
+			conHandle(2:1) = connection
+			call hardware_set_soft_timer(SLAVE_WRITE, SLAVE3, 1) 
+		end if
+		if address(0:1) = $87 
+			conHandle(3:1) = connection
+			call hardware_set_soft_timer(SLAVE_WRITE, SLAVE5, 1) 
+			#*********** UART MESSAGE*******************
+			if Message = 1
+				message2(0:16) = "Connect Slave C "
+				call system_endpoint_tx(system_endpoint_uart1, 16, message2(0:16))		
+				call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
+			end if
+		end if
+		if address(0:1) = $da 
+			conHandle(4:1) = connection
+			#call hardware_set_soft_timer(SLAVE_WRITE, SLAVE6, 1)
+			call hardware_set_soft_timer(SLAVE_READ, SLAVE6, 1)
+
+			#*********** UART MESSAGE*******************
+			if Message = 1
+				message2(0:16) = "Connected Ext  "
+				call system_endpoint_tx(system_endpoint_uart1, 16, message2(0:16))		
+				call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
+			end if
+			
+		end if
+		if address(0:1) = $99 
+			conHandle(5:1) = connection
+			call hardware_set_soft_timer(SLAVE_WRITE, SLAVEA, 1) 
+		end if
+		if address(0:1) = $b1 
+			conHandle(6:1) = connection
+			call hardware_set_soft_timer(SLAVE_WRITE, SLAVEB, 1) 
+		end if
+		if address(0:1) = $15 
+			conHandle(7:1) = connection
+			call hardware_set_soft_timer(SLAVE_WRITE, SLAVENOTAG, 1) 
+		end if
+		call gap_connect_selective(MIN_CON_INTERVAL, MAX_CON_INTERVAL, TIMEOUT, LATENCY)
+
+
+	end if
+
+end
+
+event hardware_soft_timer(handle)	
+	if handle = DISCONNECT	
+		call connection_disconnect(conHandle(8:1))
+		#*********** UART MESSAGE*******************
+		if Message = 1
+			message2(0:16) = "DISConnecte Ext"
+			call system_endpoint_tx(system_endpoint_uart1, 16, message2(0:16))		
+			call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")	
+		end if
+		
+    end if
+
+
+    if handle = SLAVE0
+		call attclient_attribute_write(conHandle(0:1), $9, 1, 01) # slave B enable notification
+	end if	
+    if handle = SLAVE2
+		call attclient_attribute_write(conHandle(1:1), $9, 1, 01) # slave B enable notification
+	end if	
+    if handle = SLAVE3
+		call attclient_attribute_write(conHandle(2:1), $9, 1, 01) # slave B enable notification
+	end if	
+    if handle = SLAVE5
+		#call attclient_attribute_write(conHandle(3:1), $9, 1, 01) # slave B enable notification
+		call attclient_read_by_handle(conHandle(3:1), $8)
+	end if	
+    if handle = SLAVE6
+		call attclient_read_by_handle(conHandle(4:1), $8)
+			#call attclient_attribute_write(conHandle(4:1), $9, 1, 01) # slave B enable notification
+	end if	
+    if handle = SLAVEA
+		call attclient_attribute_write(conHandle(5:1), $9, 1, 01) # slave B enable notification
+	end if	
+    if handle = SLAVEB
+		call attclient_attribute_write(conHandle(6:1), $9, 1, 01) # slave B enable notification
+	end if	
+    if handle = SLAVENOTAG
+		call attclient_attribute_write(conHandle(7:1), $9, 1, 01) # slave B enable notification
+	end if	
+		
+	
+end
+
+event connection_disconnected(connection, reason)
+
+	call hardware_set_soft_timer(50, DISCONNECT, 1)
+	call gap_connect_selective(MIN_CON_INTERVAL, MAX_CON_INTERVAL, TIMEOUT, LATENCY)
+end
+
+
+
+event attclient_attribute_value(connection, attHandle, type, value_len, value_data)
+	# type:
+	# attclient_attribute_value_type_read 
+	# attclient_attribute_value_type_notify 
+	# attclient_attribute_value_type_indicate 
+	# attclient_attribute_value_type_read_by_type 
+	# attclient_attribute_value_type_read_blob 
+	# attclient_attribute_value_type_indicate_rsp_req
+
+	ServerValue(0:value_len) = value_data(0:value_len)
+	
+	if type = attclient_attribute_value_type_notify
+		loop_count = 0
+		loop_size = 5	# Half the size of the while loop
+		while loop_count <= 10
+		
+			t(loop_count:1) = (ServerValue(loop_size:1)/$10) + 48 + ((ServerValue(loop_size:1)/$10 )/10*7)
+			loop_count = loop_count + 1
+			t(loop_count:1) = (ServerValue(loop_size:1)&$f) + 48 + ((ServerValue(loop_size:1)&$f )/10*7)
+			loop_size = loop_size - 1
+			loop_count = loop_count + 1
+
+		end while
+		
+		#*********** UART MESSAGE*******************
+		if Message = 1
+			message2(0:13) = "Notified!    "
+			call system_endpoint_tx(system_endpoint_uart1, 13, message2(0:13))	
+			call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
+		end if
+		
+		if connection = conHandle(1:1)
+			#*********** UART MESSAGE*******************
+			if Message = 1
+				message2(0:13) = "Slave D :    "
+				call system_endpoint_tx(system_endpoint_uart1, 13, message2(0:13))	
+			end if
+			call system_endpoint_tx(system_endpoint_uart1, 13, t(0:13))	
+			call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
+		end if
+		
+		if connection = conHandle(3:1)
+			#*********** UART MESSAGE*******************
+			if Message = 1
+				message2(0:13) = "Slave C:     "
+				call system_endpoint_tx(system_endpoint_uart1, 13, message2(0:13))	
+			end if
+			call system_endpoint_tx(system_endpoint_uart1, 13, t(0:13))			
+			call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
+		end if
+	
+	end if
+	
+	
+	if type = attclient_attribute_value_type_read 
+		#*********** UART MESSAGE*******************
+		if Message = 1
+			message2(0:15) = "Read from Ext: "
+			call system_endpoint_tx(system_endpoint_uart1, 15, message2(0:15))	
+		end if
+		call system_endpoint_tx(system_endpoint_uart1, value_len, ServerValue(0:value_len))		
+		call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")	
+		
+		
+	end if
+	
+		
+	
+	
+		
+
+	
+
+end
+
+
+
+
+

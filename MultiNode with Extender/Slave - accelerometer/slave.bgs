@@ -1,0 +1,258 @@
+	
+#*** list of handles for soft timer ****
+const UPDATE_GATT = 0
+const REPEAT = 0
+const DISCONNECT = 1
+const DOWORK = 2
+const SOFT_TIME = 5000
+
+#*** list of variables ****
+dim conHandle
+dim result1
+dim ADC_DATA(4) 
+
+dim conn
+dim rssi
+
+dim i2c_result
+dim i2c_data_len
+dim i2c_data(8)
+
+dim a
+
+
+
+# Read a register value from the accelerometer
+procedure accelReadRegister(register, numBytes)
+
+	# set pointer to the register value to be read with a repeated start condition
+	call hardware_i2c_write($3A, 0, 1, register)
+	# read the register value
+	call hardware_i2c_read($3A, 1, numBytes)(i2c_result, i2c_data_len, i2c_data(0:i2c_data_len))
+end
+
+# Write a register value to accelerometer
+procedure accelWriteRegister(register, value)
+
+	# combine the register and value to make data
+	i2c_data(0:1) = register
+	i2c_data(1:1) = value
+	# write data to the register
+	call hardware_i2c_write($3A, 1, 2, i2c_data(0:2))
+end	
+
+# Put accel in standby mode
+procedure accelStandby()
+
+	# read the current contents of the CTRL1 register
+	call accelReadRegister($2A, 1)
+	# clear the standby bit in CTRL1 register
+	call accelWriteRegister($2A, (i2c_data(0:1) & $FE)) 
+end
+
+# Put accel in active mode
+procedure accelActive()
+
+	# read the current contents of the CTRL1 register
+	call accelReadRegister($2A, 1)
+	# set the standby bit in CTRL1 register
+	call accelWriteRegister($2A, (i2c_data(0:1) | $01)) 
+end
+
+
+
+
+#********** System boot event listener ***********************
+#*************************************************************
+#***************** Main Program   ****************************
+#*************************************************************
+#initialize gap mod, bonding and start free running times on system boot
+event system_boot(major,minor,patch,build,ll_version,protocol,hw)
+    
+	# Initialize IOs
+	#************** port 0 *************************************
+	call hardware_io_port_config_direction(0, $10)
+    call hardware_io_port_write(0,$10,$00)
+
+	# set bondable mode (allow pairing)
+	call sm_set_bondable_mode(1)
+    # set advertisement parameters
+    call gap_set_adv_parameters(32, 32, 7)
+    # start advertising mode
+	call gap_set_mode(gap_general_discoverable, gap_undirected_connectable)
+   
+	# put the accelerometer in standby mode to modify control registers
+	call accelStandby()
+	# select fast read mode (only the MSB of accelerometer value is read) and low noise mode
+	call accelWriteRegister($2A, $06)
+	# set full scale range to +/- 2g
+	call accelWriteRegister($0E, $00)
+	# put the accelerometer in active mode
+	call accelActive()
+	
+
+end
+
+#********** ADC to GATT event ****************
+event hardware_adc_result(input,value)
+	# Received ADC reading
+	#input 6 = potentiometer
+	
+	if input = 6 then
+		#ADC_DATA = value
+		ADC_DATA(0:2) = $1990
+		
+		ADC_DATA(2) = $56 + a
+		ADC_DATA(3) = $78 + a
+		a = a + 1
+		
+		# Write ADC value to GATT database
+		# handle, offset, length, data
+		#call attributes_write(temperatureA,0,4, ADC_DATA(0:4))
+     end if
+ end
+
+ 
+
+#********** Timer event listener ****************************************************************
+#*************************************************************************************************
+event hardware_soft_timer(handle)
+	
+	if handle = UPDATE_GATT
+	
+		#********** ADC ****************
+		#call hardware ADC to retrieve potentiometer data for ADC_DATA
+		#(address, stop, length)(result, data_len, data_data)
+		#call hardware_adc_read(6,1,2)
+		
+		#********** i2c ****************
+		# i2c device address : Read = $3b Write = $3a
+		# I2C stop condition is sent after the transmission.
+		# Result 0 indicates successful read.
+		#(address, stop, length)
+		#call hardware_i2c_read($3b, 1, 8)(result1, data_leni2c, datai2c(0:data_leni2c))
+
+		
+		
+		# read accelerometer data (X, Y and Z)
+		call accelReadRegister($01, 3)
+		
+
+		# determine temperatureA from accelerometer data
+		# threshold is at +/- 0.8g for all three axis corresponding to $33/$CC respectively
+		# using 8-bit twos compliment data with 16 mg per bit resolution
+		
+		# check for up position
+		if((i2c_data(0:1) >= $80) && (i2c_data(0:1) <= $CC)) then
+			call attributes_write(temperatureA, 0, 1, $00)
+			return
+		end if
+		# check for down position
+		if((i2c_data(0:1) < $80) && (i2c_data(0:1) >= $33)) then
+			call attributes_write(temperatureA, 0, 1, $01)
+			return
+		end if
+		# check for left position
+		if((i2c_data(1:1) < $80) && (i2c_data(1:1) >= $33)) then
+			call attributes_write(temperatureA, 0, 1, $02)
+			return
+		end if
+		# check for right position
+		if((i2c_data(1:1) >= $80) && (i2c_data(1:1) <= $CC)) then
+			call attributes_write(temperatureA, 0, 1, $03)
+			return
+		end if
+		# check for top position
+		if((i2c_data(2:1) < $80) && (i2c_data(2:1) >= $33)) then
+			call attributes_write(temperatureA, 0, 1, $04)
+			return
+		end if
+		# check for down position
+		if((i2c_data(2:1) >= $80) && (i2c_data(2:1) <= $CC)) then
+			call attributes_write(temperatureA, 0, 1, $05)
+			return
+		end if
+		
+		####
+
+
+		####
+	
+	end if
+	
+	
+    if handle = DISCONNECT
+        # disconnect 
+		call connection_disconnect(conHandle)
+		
+		 # set display to command mode
+        call hardware_io_port_write(0,$80,$00) # RS pin
+        call hardware_io_port_write(1,$40,$00) # CS pin
+        call hardware_io_port_config_direction(0,$94)
+        call hardware_io_port_config_direction(1,$68)
+
+        # initialize the display
+        call hardware_spi_transfer(0,11,"\x30\x30\x30\x39\x14\x56\x6d\x70\x0c\x06\x01")
+		# set display to data mode
+        call hardware_io_port_write(0,$80,$80)
+        # write message to the display
+        call hardware_spi_transfer(0,12,"DISCONNECTED")
+    end if
+	
+    if handle = DOWORK
+        # set display to command mode
+        call hardware_io_port_write(0,$80,$00) # RS pin
+        call hardware_io_port_write(1,$40,$00) # CS pin
+        call hardware_io_port_config_direction(0,$94)
+        call hardware_io_port_config_direction(1,$68)
+
+        # initialize the display
+        call hardware_spi_transfer(0,11,"\x30\x30\x30\x39\x14\x56\x6d\x70\x0c\x06\x01")
+        
+        # set display to data mode
+        call hardware_io_port_write(0,$80,$80)
+        # write message to the display
+        call hardware_spi_transfer(0,9,"CONNECTED")
+			
+    end if
+end
+# Connection status listener
+#*************************************************************************************************
+event connection_status(connection, flags, address, address_type, conn_interval, timeout, latency, bonding)
+
+	# connection status flag
+	# bit 0: connection exists $1
+	# bit 1: connection is encrypted $2
+	# bit 2: new connection has been created $4
+	# bit 3: connection parameters have changed $8
+	# check for bit 2 (ox4)
+	if (flags & $4) then
+		# save connection handle
+		conHandle = connection
+        
+        # This signal is used for synchronization purpose
+		# Set P0_4 pin High (relay output is active)
+		call hardware_io_port_write(0,$10,$10)
+        
+        # disconnect after 1s
+		call hardware_set_soft_timer(SOFT_TIME, DOWORK, 1)
+		# start a timer to read accelerometer data
+		call hardware_set_soft_timer(32768, UPDATE_GATT, REPEAT)
+		#call hardware_set_soft_timer(SOFT_TIME, DISCONNECT, 1)
+	end if
+	
+end
+
+# Disconnect event listener
+#*************************************************************************************************
+event connection_disconnected(connection, reason)
+	call hardware_io_port_write(0,$10,$10) 
+	call hardware_set_soft_timer(SOFT_TIME, DISCONNECT, 1)
+    # Set P0_4 pin LOW (relay output is inactive)
+	call hardware_io_port_write(0,$10,$00)
+	# go back to advertising mode
+	call gap_set_mode(gap_general_discoverable, gap_undirected_connectable)
+end
+
+
+

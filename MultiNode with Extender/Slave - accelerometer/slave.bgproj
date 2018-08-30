@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project>
+	<config in="slave_config.xml" />	
+	<gatt in="slave_gatt.xml" />
+	<hardware in="slave_hardware.xml" />
+	<script in="slave.bgs" />
+	<image out="out.hex" />
+	<device type="ble121lr-m256k" />
+	<boot fw="bootuart" />
+</project>

@@ -64,10 +64,6 @@ end
 #****  message(0:16) : has to be a string with length 16
 #****  line : LCD has two 16 character lines to be selected from
 procedure write_lcd(line, message999())
-	#************** set the display to command mode **************
-	# Set P1_0 HIGH and P1_1,2 pins LOW
-	# (port=1, pin selection mask = 0b00000111, pin logic mask = 0b00000001)
-	# NOTE: logic value parameter is also a bitmask, not a single 0/1 to apply to all selected pins
 	call hardware_io_port_write(0,$80,$00) # RS pin
 	call hardware_io_port_write(1,$40,$00) # CS pin
 	call hardware_io_port_config_direction(0,$94)
@@ -85,7 +81,6 @@ procedure write_lcd(line, message999())
 	# 0x01: clear
 	 call hardware_spi_transfer(0,10,"\x30\x30\x30\x39\x14\x56\x6d\x70\x0c\x06")
 	
-	
 	# Change display cursor position
 	if line = 1 then
 		call hardware_spi_transfer(0,1,"\x80")
@@ -98,10 +93,9 @@ procedure write_lcd(line, message999())
 	# (port=1, pin selection mask = 0b00000111, pin logic mask = 0b00000111)
 	# NOTE: logic value parameter is also a bitmask, not a single 0/1 to apply to all selected pins
 	call hardware_io_port_write(0,$80,$80)
-	#Write temperature to display
+	# Write message to display
 	call hardware_spi_transfer(0,16,message999(0:16))
 end
-
 
 # Read a register value from the accelerometer
 procedure GetTemperature()

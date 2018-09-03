@@ -1,63 +1,69 @@
 #*** Constants ****
-const UPDATE_GATT = 0
-const REPEAT = 1
-const DISCONNECT = 1
-const CONNECTED = 2
-const MASTER = 3
-const SLAVE = 4
-const BOOT = 5
+#	Timers
+const WAIT = 34	#	Adds a "delay"
+const EXTENDER_WRITE_NOTIFY = 7	# Extender enables notification on slaves
+const DISCONNECT = 1	#	Disconnects slaves
+const UPDATE_GATT = 0	#	Updates GATT
 const BOOTMASTER = 6
-const EXTENDER_WRITE_METHOD = 7
+const CONNECTED = 2
+
+#	Timer Options
+const REPEAT = 1
 const SOFT_TIME = 200
 const WRITE_TIME = 2500
 const WAIT_TIME = 10000
 const BOOT_TIME = 1000
+
+#	Status Flags
+const MASTER = 3	#	Extender in master
+const SLAVE = 4	#	Extender in slave
+const BOOT = 5	#	Extender in boot
+
+#	Connection Options
 const MIN_CI = 120 # how fast we collect data from the slaves
 const MAX_CI = 120
 const TIMEOUT = 40
 const LATENCY = 0
 const PRINT = 11
 
-const DISCONNECTB = 13
-const WAIT = 34
 
 #*** UART CONTROL
 #const Message = 0	# off
 const Message = 1	# on
 
 #*** Variables ****
+#	Whitelists
 dim Slave_WhitelistA(6)
 dim Slave_WhitelistB(6)
 dim Slave_Whitelist3(6)
-dim conHandle(3)
-dim slave
+
+dim conHandle(3)	#	Variable holds connection handle
+
+#	Slave Flags
+dim SlaveA
+dim SlaveB
+dim FlagA
+dim FlagB
+
+dim count	# Variable that increments with update from a slave
+
+
+#	Message and Data Variables
+dim message_DATA(16)
+dim message_UART(16)
+dim message_LCD(16)
 dim message(16)
 dim t(4)
 dim ServerValueA(6)
 dim ServerValueB(7)
-dim SlaveA
-dim SlaveB
-dim count
-
-dim aaa(4)
-
-dim data_message(16)
-dim message_message(16)
-
-dim data_data(13)
-
-dim string(1)
-dim status
-dim buffer_slave_data(8)
-dim buffer_slaves(2)
-dim buffer_sent
-dim order(16)
-dim aaaaa
-dim notifyA
-dim notifyB
-dim FlagA
-dim FlagB
+dim data_DATA(13)
 dim rawDATA(8)
+
+
+# Flags
+dim status
+dim buffer_sent
+
 
 
 
@@ -128,13 +134,13 @@ end
 
 #************** Function for Master/Slave Boot Sequence **************
 procedure state_boot(state)
-
+	#	Master Boot Sequence
 	if state = MASTER
 		status = MASTER
 		#*********** UART MESSAGE*******************
 		if Message = 1
-			message_message(0:16) = "MASTER          "
-			call system_endpoint_tx(system_endpoint_uart1, 16, message_message(0:16))
+			message_UART(0:16) = "MASTER          "
+			call system_endpoint_tx(system_endpoint_uart1, 16, message_UART(0:16))
 			call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
 		end if 
 
@@ -145,19 +151,18 @@ procedure state_boot(state)
 		call system_whitelist_append(Slave_WhitelistA(0:6), 0 )
 		call system_whitelist_append(Slave_WhitelistB(0:6), 0 )
 
-		
 		call gap_connect_selective(MIN_CI, MAX_CI, TIMEOUT, LATENCY)
 	end if
 	
-	#****SLAVE MODE****
+	#	Slave Boot Sequence
 	if state = SLAVE
 		call hardware_set_soft_timer(SOFT_TIME,DISCONNECT,1)
 		status = SLAVE
 		
 		#*********** UART MESSAGE*******************
 		if Message = 1
-			message_message(0:16) = "SLAVE           "
-			call system_endpoint_tx(system_endpoint_uart1, 16, message_message(0:16))
+			message_UART(0:16) = "SLAVE           "
+			call system_endpoint_tx(system_endpoint_uart1, 16, message_UART(0:16))
 			call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
 		end if
 
@@ -173,17 +178,12 @@ procedure state_boot(state)
 end
 
 
-
-
-
 #**************main program**************
 event system_boot(major,minor,patch,build,ll_version,protocol,hw)
-
 	call init_lcd() # Initialze LCD
-	message_message(0:16) = "WELCOME         "
-	call write_lcd(1, message_message(0:16))	# Welcome Message on Line 1
+	message_LCD(0:16) = "WELCOME         "
+	call write_lcd(1, message_LCD(0:16))	# Welcome Message on Line 1
 	call state_boot(MASTER)	# Boot Extender as MASTER
-
 end
 
 #***************** Connection status listener ****************************
@@ -195,10 +195,10 @@ event connection_status(connection, flags, address, address_type, conn_interval,
 	# bit 3: connection parameters have changed
 	# check for bit 2 (ox4) 0x0100
 	if (flags & $4) then
-						#*********** UART MESSAGE*******************
+				#*********** UART MESSAGE*******************
 				if Message = 0
-					message_message(0:16) = "New Connection  "
-					call system_endpoint_tx(system_endpoint_uart1, 16, message_message(0:16))
+					message_UART(0:16) = "New Connection  "
+					call system_endpoint_tx(system_endpoint_uart1, 16, message_UART(0:16))
 					call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
 				end if
 
@@ -213,13 +213,13 @@ event connection_status(connection, flags, address, address_type, conn_interval,
 				#FlagA = 0
 				#*********** UART MESSAGE*******************
 				if Message = 1
-					message_message(0:15) = "Slave A   =    "
-					message_message(15:1) = conHandle(0:1) + 48
-					call system_endpoint_tx(system_endpoint_uart1, 16, message_message(0:16))
+					message_UART(0:15) = "Slave A   =    "
+					message_UART(15:1) = conHandle(0:1) + 48
+					call system_endpoint_tx(system_endpoint_uart1, 16, message_UART(0:16))
 					call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
 				end if
 				 
-				call hardware_set_soft_timer(SOFT_TIME, EXTENDER_WRITE_METHOD, 1)
+				call hardware_set_soft_timer(SOFT_TIME, EXTENDER_WRITE_NOTIFY, 1)
 
 			end if
 			
@@ -230,13 +230,13 @@ event connection_status(connection, flags, address, address_type, conn_interval,
 				#FlagB = 0
 				#*********** UART MESSAGE*******************
 				if Message = 1
-					message_message(0:15) = "Slave B   =    "
-					message_message(15:1) = conHandle(1:1) + 48
-					call system_endpoint_tx(system_endpoint_uart1, 16, message_message(0:16))
+					message_UART(0:15) = "Slave B   =    "
+					message_UART(15:1) = conHandle(1:1) + 48
+					call system_endpoint_tx(system_endpoint_uart1, 16, message_UART(0:16))
 					call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
 				end if
 			   
-			   call hardware_set_soft_timer(SOFT_TIME, EXTENDER_WRITE_METHOD, 1)
+			   call hardware_set_soft_timer(SOFT_TIME, EXTENDER_WRITE_NOTIFY, 1)
 			end if
 		
 			call gap_connect_selective(MIN_CI, MAX_CI, TIMEOUT, 0)
@@ -246,8 +246,8 @@ event connection_status(connection, flags, address, address_type, conn_interval,
 		if status = SLAVE
 			#*********** UART MESSAGE*******************
 			if Message = 1
-				message_message(0:16) = "EXT CON TO MASTE"
-				call system_endpoint_tx(system_endpoint_uart1, 16, message_message(0:16))
+				message_UART(0:16) = "EXT CON TO MASTE"
+				call system_endpoint_tx(system_endpoint_uart1, 16, message_UART(0:16))
 				call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
 			end if
 		
@@ -274,8 +274,8 @@ event connection_disconnected(connection, reason)
 	if status = MASTER
 		#*********** UART MESSAGE*******************
 		if Message = 1
-			message_message(0:16) = "Master Disconnec"
-			call system_endpoint_tx(system_endpoint_uart1, 16, message_message(0:16))
+			message_UART(0:16) = "Master Disconnec"
+			call system_endpoint_tx(system_endpoint_uart1, 16, message_UART(0:16))
 			call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
 		end if
 
@@ -292,8 +292,8 @@ event connection_disconnected(connection, reason)
 	if status = SLAVE
 		#*********** UART MESSAGE*******************
 		if Message = 1
-			message_message(0:16) = "EXTENDER DISCONN"
-			call system_endpoint_tx(system_endpoint_uart1, 16, message_message(0:16))
+			message_UART(0:16) = "EXTENDER DISCONN"
+			call system_endpoint_tx(system_endpoint_uart1, 16, message_UART(0:16))
 			call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
 		end if
 	
@@ -309,29 +309,27 @@ event connection_disconnected(connection, reason)
 
 end
 
-
-
-
+	#	Timers
 event hardware_soft_timer(handle)
 
 	if handle = WAIT
 	
 		#*********** UART MESSAGE*******************
 		if Message = 1
-			message_message(0:6) = "WAIT  "
-			call system_endpoint_tx(system_endpoint_uart1, 6, message_message(0:16))
+			message_UART(0:6) = "WAIT  "
+			call system_endpoint_tx(system_endpoint_uart1, 6, message_UART(0:16))
 			call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
 		end if
 	
 	end if 
 	
-	if handle = EXTENDER_WRITE_METHOD
+	if handle = EXTENDER_WRITE_NOTIFY
 		if SlaveA = 1
 			call attclient_attribute_write(conHandle(0:1), $9, 1, attributes_attribute_status_flag_notify) # slave A
 			#*********** UART MESSAGE*******************
 			if Message = 1
-				message_message(0:16) = "SLAVE A NOTIFY  "
-				call system_endpoint_tx(system_endpoint_uart1, 16, message_message(0:16))
+				message_UART(0:16) = "SLAVE A NOTIFY  "
+				call system_endpoint_tx(system_endpoint_uart1, 16, message_UART(0:16))
 				call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
 			end if
 
@@ -340,8 +338,8 @@ event hardware_soft_timer(handle)
 			call attclient_attribute_write(conHandle(1:1), $9, 1, attributes_attribute_status_flag_notify) # slave B
 			#*********** UART MESSAGE*******************
 			if Message = 1
-				message_message(0:16) = "SLAVE B NOTIFY  "
-				call system_endpoint_tx(system_endpoint_uart1, 16, message_message(0:16))
+				message_UART(0:16) = "SLAVE B NOTIFY  "
+				call system_endpoint_tx(system_endpoint_uart1, 16, message_UART(0:16))
 				call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
 			end if
 		end if	
@@ -353,17 +351,17 @@ event hardware_soft_timer(handle)
 	end if 
 	
 	if handle = UPDATE_GATT
-		data_data(0:6) = ServerValueA(0:6)
-		data_data(6:7) = ServerValueB(0:7)	
-		call attributes_write(temperatureS, 0, 13, data_data(0:13))
+		data_DATA(0:6) = ServerValueA(0:6)
+		data_DATA(6:7) = ServerValueB(0:7)	
+		call attributes_write(temperatureS, 0, 13, data_DATA(0:13))
 		#*********** UART MESSAGE*******************
 		if Message = 1
-			message_message(0:16) = "EXTENDER WRITE: "
-			call system_endpoint_tx(system_endpoint_uart1, 16, message_message(0:16))
+			message_UART(0:16) = "EXTENDER WRITE: "
+			call system_endpoint_tx(system_endpoint_uart1, 16, message_UART(0:16))
 			call system_endpoint_tx(system_endpoint_uart1, 6, ServerValueA(0:6))
 			
-			message_message(0:16) = "   Digital:     "
-			call system_endpoint_tx(system_endpoint_uart1, 16, message_message(0:16))			
+			message_UART(0:16) = "   Digital:     "
+			call system_endpoint_tx(system_endpoint_uart1, 16, message_UART(0:16))			
 			call system_endpoint_tx(system_endpoint_uart1, 7, ServerValueB(0:7))
 			call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
 		end if
@@ -389,15 +387,14 @@ event attclient_attribute_value(connection, attHandle, type, value_len, value_da
 	
 	rawDATA(0:value_len) = value_data (0:value_len)
 	
-	
 	if type = attclient_attribute_value_type_notify
 		
 		if connection = conHandle(0:1)
 			if FlagA = 0
 				#*********** UART MESSAGE*******************
 				if Message = 1
-					message_message(0:16) = "Slave A WRITE   "
-					call system_endpoint_tx(system_endpoint_uart1, 16, message_message(0:16))
+					message_UART(0:16) = "Slave A WRITE   "
+					call system_endpoint_tx(system_endpoint_uart1, 16, message_UART(0:16))
 					call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
 				end if
 				ServerValueA(0:1) = "A"
@@ -413,8 +410,8 @@ event attclient_attribute_value(connection, attHandle, type, value_len, value_da
 			if FlagB = 0
 				#*********** UART MESSAGE*******************
 				if Message = 1
-					message_message(0:16) = "Slave B WRITE   "
-					call system_endpoint_tx(system_endpoint_uart1, 16, message_message(0:16))
+					message_UART(0:16) = "Slave B WRITE   "
+					call system_endpoint_tx(system_endpoint_uart1, 16, message_UART(0:16))
 					call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
 				end if
 
@@ -431,8 +428,8 @@ event attclient_attribute_value(connection, attHandle, type, value_len, value_da
 		if count = 2
 			#*********** UART MESSAGE*******************
 			if Message = 1
-				message_message(0:16) = "COUNT = 2       "
-				call system_endpoint_tx(system_endpoint_uart1, 16, message_message(0:16))
+				message_UART(0:16) = "COUNT = 2       "
+				call system_endpoint_tx(system_endpoint_uart1, 16, message_UART(0:16))
 				call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
 			end if
 		

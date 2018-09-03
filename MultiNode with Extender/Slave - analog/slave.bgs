@@ -1,5 +1,6 @@
-const SOFT_TIME = 16384
-const READ_TIME = 16384
+# Timer Constants
+const SOFT_TIME = 16384	# Timer Value for soft timer
+const READ_TIME = 16384	# Timer Value for ADC read timer
 # ms  | SOFT_TIME
 # 7.5 | 246
 # 10  | 328
@@ -25,75 +26,79 @@ const READ_TIME = 16384
 
 	
 #*** list of handles for soft timer ****
-const UPDATE_GATT = 9
-const UPDATE_GATT2 = 19
-const REPEAT = 0
-const DISCONNECT = 1
+const REPEAT = 0	# Set timer to repeat
+const DISCONNECT = 1	#	Disconnect soft timer
 const CONNECTED = 2
-const NUM_BYTES = 20
-const CALCULATE = 23
-const ADC_READ = 3
-const WRITE = 4
-const k() = "0123456789abcde0123456789abcde0123456789abcde0123456789abcde0123456789abcde0123456789abcde0123456789abcde0123456789abcde0123456789abcde0123456789abcde0123456789abcde0123456789abcde0123456789abcde0123456789abcde0123456789abcde0123456789abcde0123456789abcde"
-# 37 not working
-const SIZE = 30
-const NUM_TT = 66
-const MAXPACKETS = 5
-dim value_data1(32)
-dim u(255)# GATT server value length must be the same size as u
-dim tmp(5)
-dim buffer(4)
+const ADC_READ = 3	# ADC soft timer
+
+
 #*** list of variables ****
+dim message_LCD(16)	# Message string to print on LCD
+dim conHandle	# Saves connection handle 
+dim milliv	#	Holds raw value from ADC
+dim tmp(5)	#	Temperature variable to convert HEX to String
 
-dim message2(16)
-dim message3(16)
-dim message4(16)
-dim conHandle
-dim handle1
-dim offset1
-dim result1
-dim value_len1
-dim value_len2
-dim i
-dim upointer
-dim test
-dim a
-dim b
-dim c
-dim d
-dim e
-dim f
-dim g
-dim packet_count
-dim count
-dim milliv
-dim ready
-dim data(20)
-
-
+#************** function for initializing LDC **************
+# See NHD-C0216CZ-FSW-FBW-3V3 data sheet
 procedure init_lcd()
+	#************** set the display to command mode **************
+	# Set P1_0,1,2 pins HIGH
+	# (port=1, pin selection mask = 0b00000111, pin logic mask = 0b00000001)
+	# NOTE: logic value parameter is also a bitmask, not a single 0/1 to apply to all selected pins
 	call hardware_io_port_write(1,$7,$1)
 	call hardware_io_port_config_direction(1,$7)
+	
+	# Initialize the display
+	# 0x30: wake up
+	# 0x39: function set
+	# 0x14: internal oscillator frequency
+	# 0x56: power control
+	# 0x6d: follower control
+	# 0x70: contrast
+	# 0x0c: display on
+	# 0x06: entry mode
+	# 0x01: clear
 	call hardware_spi_transfer(0,11,"\x30\x30\x30\x39\x14\x56\x6d\x70\x0c\x06\x01")
 end
 
+#************** function for displaying on LCD **************
+#****  message(0:16) : has to be a string with length 16
+#****  line : LCD has two 16 character lines to be selected from
 procedure write_lcd(line, message())
 	call hardware_io_port_write(0,$80,$00) # RS pin
 	call hardware_io_port_write(1,$40,$00) # CS pin
 	call hardware_io_port_config_direction(0,$94)
 	call hardware_io_port_config_direction(1,$68)
+	
+	# initialize the display
+	# 0x30: wake up
+	# 0x39: function set
+	# 0x14: internal oscillator frequency
+	# 0x56: power control
+	# 0x6d: follower control
+	# 0x70: contrast
+	# 0x0c: display on
+	# 0x06: entry mode
+	# 0x01: clear
 	call hardware_spi_transfer(0,10,"\x30\x30\x30\x39\x14\x56\x6d\x70\x0c\x06")	
+	
+	# Change display cursor position
 	if line = 1 then
 		call hardware_spi_transfer(0,1,"\x80")
 	else
+		# Change display cursor position (second row)
 		call hardware_spi_transfer(0,1,"\xc0")
 	end if
+	#set the display to data mode
+	# Set P1_0,1,2 pins HIGH
+	# (port=1, pin selection mask = 0b00000111, pin logic mask = 0b00000111)
+	# NOTE: logic value parameter is also a bitmask, not a single 0/1 to apply to all selected pins
 	call hardware_io_port_write(0,$80,$80)
+	# Write message to display
 	call hardware_spi_transfer(0,16,message(0:16))
 end
 
 event system_boot(major,minor,patch,build,ll_version,protocol,hw)    
-	count = 0
 	call hardware_io_port_config_direction(0, $12)
     call hardware_io_port_write(0,$10,$00)
 	call init_lcd()	
@@ -104,16 +109,14 @@ event system_boot(major,minor,patch,build,ll_version,protocol,hw)
 end
 
 event connection_status(connection, flags, address, address_type, conn_interval, timeout, latency, bonding)
-
-	call hardware_set_soft_timer(READ_TIME, ADC_READ, 0)
+	call hardware_set_soft_timer(READ_TIME, ADC_READ, REPEAT)
+	conHandle = connection
 end
 
 
 event hardware_soft_timer(handle)
-	
 	if handle = ADC_READ then
 		call hardware_adc_read(6, 1, 2)	
-
 	end if 
 
     if handle = DISCONNECT then
@@ -122,22 +125,21 @@ event hardware_soft_timer(handle)
 end
 
 event hardware_adc_result(input, value)
-
+	# input 6 for 
 	if input = 6 then
 		#Convert HEX to STRING
-		milliv=value
+		milliv = value
 		tmp(0:1) = (milliv/10000) + (milliv / 100000*-10) + 48
 		tmp(1:1) = (milliv/1000) + (milliv / 10000*-10) + 48
 		tmp(2:1) = (milliv/100) + (milliv / 1000*-10) + 48
 		tmp(3:1) = (milliv/10) + (milliv / 100*-10) + 48
 		tmp(4:1) = (milliv) + (milliv / 10*-10) + 48
 		
-		message2(0:10) = "Reading:  "
-		message2(10:6) = tmp(0:6)
+		message_LCD(0:10) = "Reading:  "
+		message_LCD(10:6) = tmp(0:6)
 		
-		call write_lcd(1, message2(0:16))
+		call write_lcd(1, message_LCD(0:16))
 		call attributes_write(temperatureA, 0, 5, tmp(0:5))
-	
 	end if
 	
 end

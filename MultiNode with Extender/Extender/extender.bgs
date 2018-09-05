@@ -1,3 +1,7 @@
+#************** Program: extender.bgs **************
+#****  Extender module for Heat Map
+#****  Created by : Team HeatMap
+
 #*** Constants ****
 #	Timers
 const WAIT = 34	#	Adds a "delay"
@@ -63,8 +67,6 @@ dim rawDATA(8)
 # Flags
 dim status
 dim buffer_sent
-
-
 
 
 #************** function for initializing LDC **************
@@ -205,7 +207,7 @@ event connection_status(connection, flags, address, address_type, conn_interval,
 		#** Module functioning as Master ***
 		if status = MASTER
 		
-			#***************** save connection handle(s) *****************
+			#***************** Save connection handle(s) *****************
 			# Save Slave A
 			if address(0:1) = $99 then
 				conHandle(0:1) = connection	 # Save Connection Handle

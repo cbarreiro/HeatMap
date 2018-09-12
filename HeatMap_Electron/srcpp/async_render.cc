@@ -7,6 +7,13 @@ void mapPointValues (vector< vector<int> > coordinates) {
 
 }
 
+
+
+int fast_int_abs(int x) {
+    int store = x >> 31;
+    return (x ^ store) - store;
+}
+
 void mapData (vector< vector<int> > coordinates) {
     int row, column;
     for (row = 0; row < coordinates.size(); row++) {
@@ -27,7 +34,7 @@ int estPt ( int ptCol, int ptRow,
         difX = sensCol.at(counter) - ptCol;
         difY = sensRow.at(counter) - ptRow;
 
-        if ( (difX + difY) > 0) {
+        if ( (difX + difY) != 0) {
             dist = sqrt(difX * difX + difY * difY);
         }
 
@@ -36,3 +43,5 @@ int estPt ( int ptCol, int ptRow,
     return 8;
 
 }
+
+

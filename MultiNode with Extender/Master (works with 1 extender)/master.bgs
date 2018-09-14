@@ -163,13 +163,15 @@ event system_boot(major,minor,patch,build,ll_version,protocol,hw)
 	Slave_WhitelistNotag(0:6)=	"\x15\x4b\xec\x80\x07\x00"	# Slave no tag
 
 	#call system_whitelist_append(Slave_Whitelist0(0:6), 0 )
-	call system_whitelist_append(Slave_Whitelist2(0:6), 0 )
+	#call system_whitelist_append(Slave_Whitelist2(0:6), 0 )
 	#call system_whitelist_append(Slave_Whitelist3(0:6), 0 )
-	call system_whitelist_append(Slave_Whitelist5(0:6), 0 )
-	call system_whitelist_append(Slave_Whitelist6(0:6), 0 )
-	#call system_whitelist_append(Slave_WhitelistA(0:6), 0 )
-	#call system_whitelist_append(Slave_WhitelistB(0:6), 0 )
+	#call system_whitelist_append(Slave_Whitelist5(0:6), 0 )
+	#call system_whitelist_append(Slave_Whitelist6(0:6), 0 )
+	call system_whitelist_append(Slave_WhitelistA(0:6), 0 )
+	call system_whitelist_append(Slave_WhitelistB(0:6), 0 )
 	#call system_whitelist_append(Slave_WhitelistNotag(0:6), 0 )
+	
+	conHandle(0:9) =$9999999999999999999
 	
 	#*********** UART MESSAGE*******************
 	if Message = 1
@@ -183,7 +185,7 @@ end
 
 #***************** Connection status listener ****************************
 event connection_status(connection, flags, address, address_type, conn_interval, timeout, latency, bonding)
-		call gap_end_procedure()
+	call gap_end_procedure()
 	# connection status flag
 	# bit 0: connection exists
 	# bit 1: connection is encrypted
@@ -205,6 +207,12 @@ event connection_status(connection, flags, address, address_type, conn_interval,
 		if address(0:1) = $45 
 			conHandle(0:1) = connection
 			call hardware_set_soft_timer(SLAVE_WRITE_TIME, SLAVE0, 1) 
+			#*********** UART MESSAGE*******************
+			if Message = 1
+				message_UART(0:16) = "Connect Slave 0 "
+				call system_endpoint_tx(system_endpoint_uart1, 16, message_UART(0:16))		
+				call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
+			end if
 		end if
 		if address(0:1) = $8b 
 			conHandle(1:1) = connection
@@ -219,6 +227,12 @@ event connection_status(connection, flags, address, address_type, conn_interval,
 		if address(0:1) = $92 
 			conHandle(2:1) = connection
 			call hardware_set_soft_timer(SLAVE_WRITE_TIME, SLAVE3, 1) 
+			#*********** UART MESSAGE*******************
+			if Message = 1
+				message_UART(0:16) = "Connect Slave 3 "
+				call system_endpoint_tx(system_endpoint_uart1, 16, message_UART(0:16))		
+				call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
+			end if
 		end if
 		if address(0:1) = $87 
 			conHandle(3:1) = connection
@@ -246,14 +260,32 @@ event connection_status(connection, flags, address, address_type, conn_interval,
 		if address(0:1) = $99 
 			conHandle(5:1) = connection
 			call hardware_set_soft_timer(SLAVE_WRITE_TIME, SLAVEA, 1) 
+			#*********** UART MESSAGE*******************
+			if Message = 1
+				message_UART(0:16) = "Connect Slave A "
+				call system_endpoint_tx(system_endpoint_uart1, 16, message_UART(0:16))		
+				call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
+			end if
 		end if
 		if address(0:1) = $b1 
 			conHandle(6:1) = connection
 			call hardware_set_soft_timer(SLAVE_WRITE_TIME, SLAVEB, 1) 
+			#*********** UART MESSAGE*******************
+			if Message = 1
+				message_UART(0:16) = "Connect Slave B "
+				call system_endpoint_tx(system_endpoint_uart1, 16, message_UART(0:16))		
+				call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
+			end if
 		end if
 		if address(0:1) = $15 
 			conHandle(7:1) = connection
 			call hardware_set_soft_timer(SLAVE_WRITE_TIME, SLAVENOTAG, 1) 
+			#*********** UART MESSAGE*******************
+			if Message = 1
+				message_UART(0:16) = "Connect Slave No"
+				call system_endpoint_tx(system_endpoint_uart1, 16, message_UART(0:16))		
+				call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
+			end if
 		end if
 		call gap_connect_selective(MIN_CON_INTERVAL, MAX_CON_INTERVAL, TIMEOUT, LATENCY)
 
@@ -307,11 +339,22 @@ end
 
 #***************** Disconnect event listener Event  ****************************
 event connection_disconnected(connection, reason)
-    #************** Set P0_4 pin LOW (relay output is inactive) **************
-	# first argument: port
-	# second argument: mask
-	# data: 0 = disable; 1 = enable
-	# first response: result: 0 = successful; 1 = error	
+		if connection = conHandle(1:1)
+			conHandle(1:1) = $99
+		end if
+		
+		if connection = conHandle(3:1)
+			conHandle(3:1) = $99
+		end if
+		
+		if connection = conHandle(5:1)
+		conHandle(5:1) = $99
+		end if
+		
+		if connection = conHandle(6:1)
+			conHandle(6:1) = $99
+		end if
+
 	if Message = 1
 			message_UART(0:13) = "Disconnected "
 			call system_endpoint_tx(system_endpoint_uart1, 13, message_UART(0:13))	
@@ -332,11 +375,13 @@ event attclient_attribute_value(connection, attHandle, type, value_len, value_da
 	# attclient_attribute_value_type_read_blob 
 	# attclient_attribute_value_type_indicate_rsp_req
 
-	GATT_ServerValue(0:value_len) = value_data(0:value_len)
-	
+	#GATT_ServerValue(0:value_len) = value_data(0:value_len)
+	HEX2STRING(0:value_len) = value_data(0:value_len)
+
 	if type = attclient_attribute_value_type_notify
-		loop_count = 0
+		loop_count = 20
 		loop_size = 5	# Half the size of the while loop
+		
 		while loop_count <= 10
 		
 			HEX2STRING(loop_count:1) = (GATT_ServerValue(loop_size:1)/$10) + 48 + ((GATT_ServerValue(loop_size:1)/$10 )/10*7)
@@ -368,6 +413,26 @@ event attclient_attribute_value(connection, attHandle, type, value_len, value_da
 			#*********** UART MESSAGE*******************
 			if Message = 1
 				message_UART(0:13) = "Slave C:     "
+				call system_endpoint_tx(system_endpoint_uart1, 13, message_UART(0:13))	
+			end if
+			call system_endpoint_tx(system_endpoint_uart1, 13, HEX2STRING(0:13))			
+			call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
+		end if
+		
+				if connection = conHandle(5:1)
+			#*********** UART MESSAGE*******************
+			if Message = 1
+				message_UART(0:13) = "Slave A :    "
+				call system_endpoint_tx(system_endpoint_uart1, 13, message_UART(0:13))	
+			end if
+			call system_endpoint_tx(system_endpoint_uart1, 13, HEX2STRING(0:13))	
+			call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
+		end if
+		
+		if connection = conHandle(6:1)
+			#*********** UART MESSAGE*******************
+			if Message = 1
+				message_UART(0:13) = "Slave B:     "
 				call system_endpoint_tx(system_endpoint_uart1, 13, message_UART(0:13))	
 			end if
 			call system_endpoint_tx(system_endpoint_uart1, 13, HEX2STRING(0:13))			

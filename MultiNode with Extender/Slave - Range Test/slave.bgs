@@ -17,7 +17,7 @@ dim rssi
 dim i2c_result
 dim i2c_data_len
 dim i2c_data(8)
-
+dim DATA(4)
 dim a
 dim count
 
@@ -55,13 +55,34 @@ end
 event hardware_soft_timer(handle)
 	
 	if handle = UPDATE_GATT
-	
 
-
-
-		call attributes_write(temperatureA, 0, 1, count)
-		count = count + 1
-
+		if count = 0
+			DATA(0:4) = "1A 9"
+			count = count + 1
+		end if
+		if count = 1
+			DATA(0:4) = "1B 9"
+			count = count + 1
+		end if
+		if count = 2
+			DATA(0:4) = "1C 9"
+			count = count + 1
+		end if
+		if count = 3
+			DATA(0:4) = "1D 9"
+			count = count + 1
+		end if
+		if count = 4
+			DATA(0:4) = "1E 9"
+			count = count + 1
+		end if
+		if count = 5
+			DATA(0:4) = "1F 9"
+			count = 0
+		end if
+		
+		call attributes_write(temperatureA, 0, 4, DATA(0:4))
+		
 	
 	end if
 	

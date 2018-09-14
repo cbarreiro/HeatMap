@@ -13,7 +13,7 @@ dim ADC_DATA(4)
 
 dim conn
 dim rssi
-
+dim DATA(4)
 dim i2c_result
 dim i2c_data_len
 dim i2c_data(8)
@@ -144,32 +144,38 @@ event hardware_soft_timer(handle)
 		
 		# check for up position
 		if((i2c_data(0:1) >= $80) && (i2c_data(0:1) <= $CC)) then
-			call attributes_write(temperatureA, 0, 1, $00)
+			DATA(0:4) = "1A 9"
+			call attributes_write(temperatureA, 0, 4, DATA(0:4))
 			return
 		end if
 		# check for down position
 		if((i2c_data(0:1) < $80) && (i2c_data(0:1) >= $33)) then
-			call attributes_write(temperatureA, 0, 1, $01)
+			DATA(0:4) = "1B 9"
+			call attributes_write(temperatureA, 0, 4, DATA(0:4))
 			return
 		end if
 		# check for left position
 		if((i2c_data(1:1) < $80) && (i2c_data(1:1) >= $33)) then
-			call attributes_write(temperatureA, 0, 1, $02)
+			DATA(0:4) = "1C 9"
+			call attributes_write(temperatureA, 0, 4, DATA(0:4))
 			return
 		end if
 		# check for right position
 		if((i2c_data(1:1) >= $80) && (i2c_data(1:1) <= $CC)) then
-			call attributes_write(temperatureA, 0, 1, $03)
+			DATA(0:4) = "1D 9"
+			call attributes_write(temperatureA, 0, 4, DATA(0:4))
 			return
 		end if
 		# check for top position
 		if((i2c_data(2:1) < $80) && (i2c_data(2:1) >= $33)) then
-			call attributes_write(temperatureA, 0, 1, $04)
+			DATA(0:4) = "1E 9"
+			call attributes_write(temperatureA, 0, 4, DATA(0:4))
 			return
 		end if
 		# check for down position
 		if((i2c_data(2:1) >= $80) && (i2c_data(2:1) <= $CC)) then
-			call attributes_write(temperatureA, 0, 1, $05)
+			DATA(0:4) = "1F 9"
+			call attributes_write(temperatureA, 0, 4, DATA(0:4))
 			return
 		end if
 		

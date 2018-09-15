@@ -163,15 +163,15 @@ event system_boot(major,minor,patch,build,ll_version,protocol,hw)
 	Slave_WhitelistNotag(0:6)=	"\x15\x4b\xec\x80\x07\x00"	# Slave no tag
 
 	#call system_whitelist_append(Slave_Whitelist0(0:6), 0 )
-	#call system_whitelist_append(Slave_Whitelist2(0:6), 0 )
+	call system_whitelist_append(Slave_Whitelist2(0:6), 0 )	# Slave D
 	#call system_whitelist_append(Slave_Whitelist3(0:6), 0 )
-	#call system_whitelist_append(Slave_Whitelist5(0:6), 0 )
+	call system_whitelist_append(Slave_Whitelist5(0:6), 0 )	# Slave C
 	#call system_whitelist_append(Slave_Whitelist6(0:6), 0 )
-	call system_whitelist_append(Slave_WhitelistA(0:6), 0 )
-	call system_whitelist_append(Slave_WhitelistB(0:6), 0 )
+	call system_whitelist_append(Slave_WhitelistA(0:6), 0 )	 SLave A
+	call system_whitelist_append(Slave_WhitelistB(0:6), 0 )	 Slave B
 	#call system_whitelist_append(Slave_WhitelistNotag(0:6), 0 )
 	
-	conHandle(0:9) =$9999999999999999999
+	conHandle(0:9) =$9999999999999999999 # initiate buffer with conHandle other than 0
 	
 	#*********** UART MESSAGE*******************
 	if Message = 1
@@ -339,6 +339,7 @@ end
 
 #***************** Disconnect event listener Event  ****************************
 event connection_disconnected(connection, reason)
+		# Reset connection handles prior to re-connection 
 		if connection = conHandle(1:1)
 			conHandle(1:1) = $99
 		end if
@@ -379,7 +380,7 @@ event attclient_attribute_value(connection, attHandle, type, value_len, value_da
 	HEX2STRING(0:value_len) = value_data(0:value_len)
 
 	if type = attclient_attribute_value_type_notify
-		loop_count = 20
+		loop_count = 20	
 		loop_size = 5	# Half the size of the while loop
 		
 		while loop_count <= 10
@@ -455,11 +456,7 @@ event attclient_attribute_value(connection, attHandle, type, value_len, value_da
 	end if
 	
 		
-	
-	
-		
 
-	
 
 end
 

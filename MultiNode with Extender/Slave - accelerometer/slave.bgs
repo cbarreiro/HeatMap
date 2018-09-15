@@ -5,6 +5,7 @@ const REPEAT = 0
 const DISCONNECT = 1
 const DOWORK = 2
 const SOFT_TIME = 5000
+const UPDATE_TIME = 100000
 
 #*** list of variables ****
 dim conHandle
@@ -243,7 +244,7 @@ event connection_status(connection, flags, address, address_type, conn_interval,
         # disconnect after 1s
 		call hardware_set_soft_timer(SOFT_TIME, DOWORK, 1)
 		# start a timer to read accelerometer data
-		call hardware_set_soft_timer(32768, UPDATE_GATT, REPEAT)
+		call hardware_set_soft_timer(UPDATE_TIME, UPDATE_GATT, REPEAT)
 		#call hardware_set_soft_timer(SOFT_TIME, DISCONNECT, 1)
 	end if
 	

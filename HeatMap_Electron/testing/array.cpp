@@ -13,31 +13,46 @@ float fastInvSqrt(float x);
 
 int main()
 {
-	/*
-	int rows[5];
+	// sample matrix of area units in the room	
+	vector<int> sampleMat(LENGTH*WIDTH, 2);
 	
-	cout << rows.size();
+	// choose some indices to signify sensor point values	
+	vector<int> sampleInd = {4799, 891, 67589, 171237, 123, 112, 10928, 71823};
 	
-	while(1);
-	*/
 	
-	vector<int> test(LENGTH*WIDTH, 2);
 	
-	// choose some indices to signify point values
+	int x, iter, currentX, currentY;
+	int ptRow, ptCol;
+	int iterRow, iterCol;
 	
-	int x, currentX, currentY;
+	int xDist, yDist;
+	float distEff;
 		
 	auto start = chrono::high_resolution_clock::now();
 	
-	for(x = 0; x < test.size(); x++){
+	for(x = 0; x < sampleMat.size(); x++){
+		ptRow = x / WIDTH;
+		ptCol = x % WIDTH;
+		distEff = 0;
+		for(iter = 0; iter < sampleInd.size(); iter++) {
+			iterRow = sampleInd[iter] / WIDTH;
+			
+			iterCol = sampleInd[iter] % WIDTH;
+			
+			xDist = abs(iterCol - ptCol);
+			yDist = abs(iterRow - ptRow);
+			
+			sampleMat[x] += fastInvSqrt(xDist * xDist + yDist * yDist);
+		}
 		
-		
+		sampleMat[x] = distEff;
+		//cout << "Row: " << ptRow << " | " << "Column: " << ptCol << endl;
+		//cout << "Dist: " << distEff << endl << endl;
 	}
 	
 	auto end = chrono::high_resolution_clock::now();
 	
 	chrono::duration<double> elapsed = end - start;
-	
 	cout << "done in " << elapsed.count() << " seconds";	
 	
 	while(1);
@@ -54,7 +69,7 @@ float fastInvSqrt(float x) {
 	
 	x2 = x * 0.5F;
 	conv.f = x;
-	conv.i = 0x5f3759df - (conv.i >> 1);
+	conv.i = 0x5f3759df - (conv.i >> 1); // bit level hacking + some truly fucked up shit
 	conv.f = conv.f * (threehalfs - (x2 * conv.f * conv.f));
 	return conv.f;
 }

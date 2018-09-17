@@ -1,4 +1,4 @@
-40
+44
 0:0	GAP_AD_FLAG_BREDR_NOT_SUPPORTED
 0:0	GAP_AD_FLAG_GENERAL_DISCOVERABLE
 0:0	GAP_AD_FLAG_LIMITED_DISCOVERABLE
@@ -83,12 +83,14 @@
 0:0	DISCONNECT
 0:0	DOWORK
 0:0	SOFT_TIME
+0:0	UPDATE_TIME
 0:4	conHandle
 4:4	result1
 8:4	ADC_DATA
 12:4	conn
 16:4	rssi
-20:4	i2c_result
-24:4	i2c_data_len
-28:8	i2c_data
-36:4	a
+20:4	DATA
+24:4	i2c_result
+28:4	i2c_data_len
+32:8	i2c_data
+40:4	a

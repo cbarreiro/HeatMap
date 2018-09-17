@@ -1,6 +1,6 @@
 # Timer Constants
 const SOFT_TIME = 16384	# Timer Value for soft timer
-const READ_TIME = 16384	# Timer Value for ADC read timer
+const READ_TIME = 100000	# Timer Value for ADC read timer
 # ms  | SOFT_TIME
 # 7.5 | 246
 # 10  | 328

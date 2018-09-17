@@ -15,3 +15,7 @@
 [0830/105954:ERROR:ipc_channel_win.cc(217)] pipe error: 109
 [0904/210752:ERROR:tcp_socket_win.cc(335)] bind() returned an error: Only one usage of each socket address (protocol/network address/port) is normally permitted. (0x2740)
 [0904/210752:ERROR:devtools_http_handler.cc(229)] Cannot start http server for devtools. Stop devtools.
+[0905/121533:WARNING:dns_config_service_win.cc(665)] Failed to read DnsConfig.
+[0913/222331:ERROR:ipc_channel_win.cc(217)] pipe error: 109
+[0913/222754:ERROR:ipc_channel_win.cc(217)] pipe error: 109
+[0913/223246:ERROR:ipc_channel_win.cc(217)] pipe error: 109

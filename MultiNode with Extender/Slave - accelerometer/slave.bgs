@@ -14,7 +14,7 @@ dim ADC_DATA(4)
 
 dim conn
 dim rssi
-dim DATA(4)
+dim DATA(13)
 dim i2c_result
 dim i2c_data_len
 dim i2c_data(8)
@@ -145,38 +145,57 @@ event hardware_soft_timer(handle)
 		
 		# check for up position
 		if((i2c_data(0:1) >= $80) && (i2c_data(0:1) <= $CC)) then
-			DATA(0:4) = "1A 9"
-			call attributes_write(temperatureA, 0, 4, DATA(0:4))
+			DATA(7:6) = "D 1A 9"
+			DATA(6:1) = " "
+			DATA(0:6) = "A15676"
+			
+			call attributes_write(temperatureA, 0, 13, DATA(0:13))
+			
 			return
 		end if
 		# check for down position
 		if((i2c_data(0:1) < $80) && (i2c_data(0:1) >= $33)) then
-			DATA(0:4) = "1B 9"
-			call attributes_write(temperatureA, 0, 4, DATA(0:4))
+			DATA(7:6) = "D 1B 9"
+			DATA(6:1) = " "
+			DATA(0:6) = "A15676"
+			
+			call attributes_write(temperatureA, 0, 13, DATA(0:13))
 			return
 		end if
 		# check for left position
 		if((i2c_data(1:1) < $80) && (i2c_data(1:1) >= $33)) then
-			DATA(0:4) = "1C 9"
-			call attributes_write(temperatureA, 0, 4, DATA(0:4))
+			DATA(7:6) = "D 1C 9"
+			DATA(6:1) = " "
+			DATA(0:6) = "A15676"
+			
+			call attributes_write(temperatureA, 0, 13, DATA(0:13))
 			return
 		end if
 		# check for right position
 		if((i2c_data(1:1) >= $80) && (i2c_data(1:1) <= $CC)) then
-			DATA(0:4) = "1D 9"
-			call attributes_write(temperatureA, 0, 4, DATA(0:4))
+			DATA(7:6) = "D 1D 9"
+			DATA(6:1) = " "
+			DATA(0:6) = "A15676"
+			
+			call attributes_write(temperatureA, 0, 13, DATA(0:13))
 			return
 		end if
 		# check for top position
 		if((i2c_data(2:1) < $80) && (i2c_data(2:1) >= $33)) then
-			DATA(0:4) = "1E 9"
-			call attributes_write(temperatureA, 0, 4, DATA(0:4))
+			DATA(7:6) = "D 1E 9"
+			DATA(6:1) = " "
+			DATA(0:6) = "A15676"
+			
+			call attributes_write(temperatureA, 0, 13, DATA(0:13))
 			return
 		end if
 		# check for down position
 		if((i2c_data(2:1) >= $80) && (i2c_data(2:1) <= $CC)) then
-			DATA(0:4) = "1F 9"
-			call attributes_write(temperatureA, 0, 4, DATA(0:4))
+			DATA(7:6) = "D 1F 9"
+			DATA(6:1) = " "
+			DATA(0:6) = "A15676"
+			
+			call attributes_write(temperatureA, 0, 13, DATA(0:13))
 			return
 		end if
 		

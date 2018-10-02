@@ -23,7 +23,7 @@
 		<characteristic uuid="1901" 
 						id="temperatureA">
 			<properties read="true" write="true" notify="true" />
-			<value length="7" type="hex"></value>
+			<value length="20" type="hex"></value>
 		</characteristic>
 		<characteristic uuid="1902" 
 						id="temperatureB">

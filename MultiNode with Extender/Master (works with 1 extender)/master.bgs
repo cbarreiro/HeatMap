@@ -5,8 +5,8 @@
 
 #*** Constants ****
 #*** UART CONTROL
-#const Message = 0	# off
-const Message = 1	# on
+const Message = 0	# off
+#const Message = 1	# on
 
 #	Timers
 const DISCONNECT = 1	# Disconnect timer
@@ -25,10 +25,10 @@ const SLAVE_WRITE_TIME = 500
 const SLAVE_READ_TIME = 500
 
 #	Connection Options
-const TIMEOUT = 200 # min 10 to 3200 // 10 ms    timeout =  (1+latency) * conn interval max(ms) * 2
+const TIMEOUT = 1000 # min 10 to 3200 // 10 ms    timeout =  (1+latency) * conn interval max(ms) * 2
 const LATENCY = 0 # LATNECY X CI < TIMEOUT
-const MIN_CON_INTERVAL = 600 # CI/# of slaves * 2.5
-const MAX_CON_INTERVAL = 600
+const MIN_CON_INTERVAL = 1200 # CI/# of slaves * 2.5
+const MAX_CON_INTERVAL = 1200
 # ms  | CI
 # 7.5 | 6
 # 10  | 8
@@ -66,7 +66,7 @@ dim loop_size
 dim message_LCD(16)
 dim message_UART(16)
 dim HEX2STRING(16)
-dim GATT_ServerValue(9)
+dim GATT_ServerValue(16)
 
 #	Whitelists
 dim Slave_Whitelist0(6)
@@ -162,16 +162,23 @@ event system_boot(major,minor,patch,build,ll_version,protocol,hw)
 	Slave_WhitelistB(0:6)=		"\xb1\x3a\x15\x80\x07\x00"	# Slave B
 	Slave_WhitelistNotag(0:6)=	"\x15\x4b\xec\x80\x07\x00"	# Slave no tag
 
-	#call system_whitelist_append(Slave_Whitelist0(0:6), 0 )
+	call system_whitelist_append(Slave_Whitelist0(0:6), 0 ) # Slave 0
 	call system_whitelist_append(Slave_Whitelist2(0:6), 0 )	# Slave D
-	#call system_whitelist_append(Slave_Whitelist3(0:6), 0 )
+	call system_whitelist_append(Slave_Whitelist3(0:6), 0 ) # Slave 3
 	call system_whitelist_append(Slave_Whitelist5(0:6), 0 )	# Slave C
-	#call system_whitelist_append(Slave_Whitelist6(0:6), 0 )
-	call system_whitelist_append(Slave_WhitelistA(0:6), 0 )	 SLave A
-	call system_whitelist_append(Slave_WhitelistB(0:6), 0 )	 Slave B
-	#call system_whitelist_append(Slave_WhitelistNotag(0:6), 0 )
+	call system_whitelist_append(Slave_Whitelist6(0:6), 0 ) # Slave 6
+	call system_whitelist_append(Slave_WhitelistA(0:6), 0 )	 #SLave A
+	call system_whitelist_append(Slave_WhitelistB(0:6), 0 )	 #Slave B
+	call system_whitelist_append(Slave_WhitelistNotag(0:6), 0 ) # Slave No Tag
 	
-	conHandle(0:9) =$9999999999999999999 # initiate buffer with conHandle other than 0
+	conHandle(0:1) = $99
+	conHandle(1:1) = $99
+	conHandle(2:1) = $99
+	conHandle(3:1) = $99
+	conHandle(4:1) = $99
+	conHandle(5:1) = $99
+	conHandle(6:1) = $99
+	conHandle(7:1) = $99
 	
 	#*********** UART MESSAGE*******************
 	if Message = 1
@@ -321,8 +328,8 @@ event hardware_soft_timer(handle)
 		#call attclient_read_by_handle(conHandle(3:1), $8)
 	end if	
     if handle = SLAVE6
-		call attclient_read_by_handle(conHandle(4:1), $8)
-			#call attclient_attribute_write(conHandle(4:1), $9, 1, 01) # slave 6 enable notification
+		#call attclient_read_by_handle(conHandle(4:1), $8)
+		call attclient_attribute_write(conHandle(4:1), $9, 1, 01) # slave 6 enable notification
 	end if	
     if handle = SLAVEA
 		call attclient_attribute_write(conHandle(5:1), $9, 1, 01) # slave A enable notification
@@ -339,13 +346,25 @@ end
 
 #***************** Disconnect event listener Event  ****************************
 event connection_disconnected(connection, reason)
-		# Reset connection handles prior to re-connection 
+		# Reset connection handles prior to re-connection
+		if connection = conHandle(0:1)
+			conHandle(0:1) = $99
+		end if
+		
 		if connection = conHandle(1:1)
 			conHandle(1:1) = $99
 		end if
 		
+		if connection = conHandle(2:1)
+			conHandle(2:1) = $99
+		end if
+		
 		if connection = conHandle(3:1)
 			conHandle(3:1) = $99
+		end if
+		
+		if connection = conHandle(4:1)
+			conHandle(4:1) = $99
 		end if
 		
 		if connection = conHandle(5:1)
@@ -354,6 +373,10 @@ event connection_disconnected(connection, reason)
 		
 		if connection = conHandle(6:1)
 			conHandle(6:1) = $99
+		end if
+		
+		if connection = conHandle(7:1)
+			conHandle(7:1) = $99
 		end if
 
 	if Message = 1
@@ -400,11 +423,31 @@ event attclient_attribute_value(connection, attHandle, type, value_len, value_da
 			call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
 		end if
 		
+		if connection = conHandle(0:1)
+			#*********** UART MESSAGE*******************
+			if Message = 0
+				message_UART(0:3) = "S0 "
+				call system_endpoint_tx(system_endpoint_uart1, 3, message_UART(0:3))	
+			end if
+			call system_endpoint_tx(system_endpoint_uart1, 13, HEX2STRING(0:13))	
+			call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
+		end if
+		
 		if connection = conHandle(1:1)
 			#*********** UART MESSAGE*******************
-			if Message = 1
-				message_UART(0:13) = "Slave D :    "
-				call system_endpoint_tx(system_endpoint_uart1, 13, message_UART(0:13))	
+			if Message = 0
+				message_UART(0:3) = "SD "
+				call system_endpoint_tx(system_endpoint_uart1, 3, message_UART(0:3))	
+			end if
+			call system_endpoint_tx(system_endpoint_uart1, 13, HEX2STRING(0:13))	
+			call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
+		end if
+		
+		if connection = conHandle(2:1)
+			#*********** UART MESSAGE*******************
+			if Message = 0
+				message_UART(0:3) = "S3 "
+				call system_endpoint_tx(system_endpoint_uart1, 3, message_UART(0:3))	
 			end if
 			call system_endpoint_tx(system_endpoint_uart1, 13, HEX2STRING(0:13))	
 			call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
@@ -412,19 +455,29 @@ event attclient_attribute_value(connection, attHandle, type, value_len, value_da
 		
 		if connection = conHandle(3:1)
 			#*********** UART MESSAGE*******************
-			if Message = 1
-				message_UART(0:13) = "Slave C:     "
-				call system_endpoint_tx(system_endpoint_uart1, 13, message_UART(0:13))	
+			if Message = 0
+				message_UART(0:3) = "SC "
+				call system_endpoint_tx(system_endpoint_uart1, 3, message_UART(0:3))	
 			end if
 			call system_endpoint_tx(system_endpoint_uart1, 13, HEX2STRING(0:13))			
 			call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
 		end if
 		
-				if connection = conHandle(5:1)
+		if connection = conHandle(4:1)
 			#*********** UART MESSAGE*******************
-			if Message = 1
-				message_UART(0:13) = "Slave A :    "
-				call system_endpoint_tx(system_endpoint_uart1, 13, message_UART(0:13))	
+			if Message = 0
+				message_UART(0:3) = "S6 "
+				call system_endpoint_tx(system_endpoint_uart1, 3, message_UART(0:3))	
+			end if
+			call system_endpoint_tx(system_endpoint_uart1, 13, HEX2STRING(0:13))	
+			call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
+		end if
+		
+		if connection = conHandle(5:1)
+			#*********** UART MESSAGE*******************
+			if Message = 0
+				message_UART(0:3) = "SA "
+				call system_endpoint_tx(system_endpoint_uart1, 3, message_UART(0:3))	
 			end if
 			call system_endpoint_tx(system_endpoint_uart1, 13, HEX2STRING(0:13))	
 			call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
@@ -432,11 +485,21 @@ event attclient_attribute_value(connection, attHandle, type, value_len, value_da
 		
 		if connection = conHandle(6:1)
 			#*********** UART MESSAGE*******************
-			if Message = 1
-				message_UART(0:13) = "Slave B:     "
-				call system_endpoint_tx(system_endpoint_uart1, 13, message_UART(0:13))	
+			if Message = 0
+				message_UART(0:3) = "SB "
+				call system_endpoint_tx(system_endpoint_uart1, 3, message_UART(0:3))	
 			end if
 			call system_endpoint_tx(system_endpoint_uart1, 13, HEX2STRING(0:13))			
+			call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
+		end if
+		
+		if connection = conHandle(7:1)
+			#*********** UART MESSAGE*******************
+			if Message = 0
+				message_UART(0:3) = "ND "
+				call system_endpoint_tx(system_endpoint_uart1, 3, message_UART(0:3))	
+			end if
+			call system_endpoint_tx(system_endpoint_uart1, 13, HEX2STRING(0:13))	
 			call system_endpoint_tx(system_endpoint_uart1, 3, "\r\nw")
 		end if
 	

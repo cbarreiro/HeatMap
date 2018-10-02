@@ -1,4 +1,4 @@
-122
+129
 0:0	GAP_AD_FLAG_BREDR_NOT_SUPPORTED
 0:0	GAP_AD_FLAG_GENERAL_DISCOVERABLE
 0:0	GAP_AD_FLAG_LIMITED_DISCOVERABLE
@@ -98,12 +98,12 @@
 17:16	message_LCD
 33:16	message_UART
 49:16	HEX2STRING
-65:9	GATT_ServerValue
-74:6	Slave_Whitelist0
-80:6	Slave_Whitelist2
-86:6	Slave_Whitelist3
-92:6	Slave_Whitelist5
-98:6	Slave_Whitelist6
-104:6	Slave_WhitelistA
-110:6	Slave_WhitelistB
-116:6	Slave_WhitelistNotag
+65:16	GATT_ServerValue
+81:6	Slave_Whitelist0
+87:6	Slave_Whitelist2
+93:6	Slave_Whitelist3
+99:6	Slave_Whitelist5
+105:6	Slave_Whitelist6
+111:6	Slave_WhitelistA
+117:6	Slave_WhitelistB
+123:6	Slave_WhitelistNotag

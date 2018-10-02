@@ -37,6 +37,8 @@ dim message_LCD(16)	# Message string to print on LCD
 dim conHandle	# Saves connection handle 
 dim milliv	#	Holds raw value from ADC
 dim tmp(5)	#	Temperature variable to convert HEX to String
+dim DATA(13)
+
 
 #************** function for initializing LDC **************
 # See NHD-C0216CZ-FSW-FBW-3V3 data sheet
@@ -137,9 +139,15 @@ event hardware_adc_result(input, value)
 		
 		message_LCD(0:10) = "Reading:  "
 		message_LCD(10:6) = tmp(0:6)
+		DATA(0:1) = "A"
+		DATA(1:5) = tmp(0:5)
+		
+		DATA(6:7) = " D 1B 9"
 		
 		call write_lcd(1, message_LCD(0:16))
-		call attributes_write(temperatureA, 0, 5, tmp(0:5))
+		
+		call attributes_write(temperatureA, 0, 13, DATA(0:13))
+
 	end if
 	
 end

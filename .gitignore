@@ -1,3 +1,4 @@
 
 *.hex
 *.txt
+node_modules

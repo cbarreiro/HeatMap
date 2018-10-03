@@ -1,2 +1,0 @@
-temperatureA 8
-temperatureB 11

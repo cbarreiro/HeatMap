@@ -1,1 +1,0 @@
-temperatureS 8

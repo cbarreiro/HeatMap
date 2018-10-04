@@ -16,9 +16,9 @@ private:
 	sql::Statement *sessStmt;
 	sql::ResultSet *sessRes;
 
-	const string server, username, password;
+	std::string server, username, password;
 
-	string portNumber;
+	std::string portNumber;
 	
 public:
 	int check = PASS; ///< Session init status

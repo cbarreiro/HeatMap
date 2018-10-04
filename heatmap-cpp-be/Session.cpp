@@ -9,7 +9,7 @@ CSession::~CSession() {
 }
 
 void CSession::initSession(void) {	
-	char connChoice = 0;
+	std::string connChoice = 0;
 	while (connChoice != "Y" || connChoice != "N") {
 		std::cout << "Would you like to connect locally? (Y/N)";
 		std::cin >> connChoice;
@@ -23,10 +23,10 @@ void CSession::initSession(void) {
 		std::cout << std::endl << "Enter your username:";
 		std::cin >> username;
 
-		std::ccout << std::endl << "Enter your password:";
+		std::cout << std::endl << "Enter your password:";
 		std::cin >> password;
 	}
-	else if (connChoice = "N") {
+	else if (connChoice == "N") {
 		std::cout << "Not yet implemented";
 	}
 }

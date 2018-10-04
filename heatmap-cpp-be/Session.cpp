@@ -9,8 +9,8 @@ CSession::~CSession() {
 }
 
 void CSession::initSession(void) {	
-	std::string connChoice = 0;
-	while (connChoice != "Y" || connChoice != "N") {
+	std::string connChoice = "";
+	while (connChoice != "Y" && connChoice != "N") {
 		std::cout << "Would you like to connect locally? (Y/N)";
 		std::cin >> connChoice;
 	}

@@ -1,9 +1,10 @@
 #include "stdafx.h"
+#include "Session.h"
 
 int main() {
 	CSession test;
-    test.initSession();
+	test.initSession();
 
-    while(1);
-    test.~CSession();
+	while(1);
+	test.~CSession();
 }

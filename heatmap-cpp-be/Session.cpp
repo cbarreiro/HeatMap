@@ -9,29 +9,28 @@ CSession::~CSession() {
 }
 
 void CSession::initSession(void) {	
-	// Initialize MySQL object
-	sessionCon = mysql_init(NULL);
-	
-	// Check object status
-	if (sessionCon == NULL) {
-		std::cout << mysql_error(sessionCon);
-		check = FAIL;
+	char connChoice = 0;
+	while (connChoice != "Y" || connChoice != "N") {
+		std::cout << "Would you like to connect locally? (Y/N)";
+		std::cin >> connChoice;
 	}
-	
-	// Check connections status
-	if (mysql_real_connect(sessionCon, "localhost", "root", "root-pswd", NULL, 0, NULL, 0) == NULL) {
-		std::cout << mysql_error(sessionCon);
-		mysql_close(sessionCon);
-		check = FAIL;
+
+	if (connChoice == "Y") {
+		std::cout << "Specify port for local connection:";
+		std::cin >> portNumber;
+		server = "tcp://127.0.0.1:" + portNumber;
+
+		std::cout << std::endl << "Enter your username:";
+		std::cin >> username;
+
+		std::ccout << std::endl << "Enter your password:";
+		std::cin >> password;
 	}
-	
-	if (check == PASS) {
-		sessionStart = time(0);
+	else if (connChoice = "N") {
+		std::cout << "Not yet implemented";
 	}
 }
 
 void CSession::termSession(void) {
-	if (sessionCon != NULL) {
-		mysql_close(sessionCon);
-	}
+
 }

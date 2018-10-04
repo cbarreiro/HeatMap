@@ -11,7 +11,14 @@ private:
 	time_t sessionStart;
 	time_t sessionEnd;
 	
-	MYSQL *sessionCon;
+	sql::Driver *sessDriver;
+	sql::Connection *sessConn;
+	sql::Statement *sessStmt;
+	sql::ResultSet *sessRes;
+
+	const string server, username, password;
+
+	string portNumber;
 	
 public:
 	int check = PASS; ///< Session init status

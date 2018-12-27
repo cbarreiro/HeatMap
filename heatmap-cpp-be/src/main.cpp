@@ -2,9 +2,11 @@
 
 int main() {
     CUart uart_test;  // Test CUart object
+    int count = 0;
 
-    while (uart_test.EXIT_FLAG == false) {
+    while (count < 5) {
         uart_test.uartRx();  // Repeatedly receive from RX
+        count++;    // Uptick counter
     }
 
     uart_test.~CUart();  // Terminate

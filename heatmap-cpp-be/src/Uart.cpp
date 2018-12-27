@@ -1,13 +1,16 @@
 #include "../include/Uart.h"
 
 CUart::CUart() {
+    // Terminate if GPIO incorrectly initiated
+    gpioTerminate();
+    
     // Initialize GPIO and filestream
     gpioInitialise();
     uart0_filestream = -1;
 
     // Open channel at uart0
     if (uart0_filestream = serOpen("/dev/ttyUSB0", 9600, 0) < 0)
-        printf("Unable to open UART");
+        printf("Unable to open UART\n");
 }
 
 CUart::~CUart() {
@@ -29,7 +32,7 @@ void CUart::uartRx(void) {
         rx_length = serRead(uart0_filestream, data, 1);
 
         // Either bad rx_length (-1) or empty (0)
-        if (rx_length <= 0) printf("Error reading form UART: %d", rx_length);
+        if (rx_length <= 0) printf("Error reading form UART: %d\n", rx_length);
 
         // If data in buffer is not yet valid
         else if (data[0] != '.') {
@@ -76,7 +79,7 @@ void CUart::uartRx(void) {
 
         // Otherwise, unhandled error
         else {
-            printf("Unhandled error.");
+            printf("Unhandled error.\n");
         }
     }
 }

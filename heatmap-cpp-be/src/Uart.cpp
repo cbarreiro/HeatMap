@@ -3,7 +3,7 @@
 CUart::CUart() {
     // Terminate if GPIO incorrectly initiated
     gpioTerminate();
-    
+
     // Initialize GPIO and filestream
     gpioInitialise();
     uart0_filestream = -1;

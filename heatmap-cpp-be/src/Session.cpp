@@ -2,7 +2,7 @@
  * CSession src
  * - Contains Session class functionalities
  */
-#include "../headers/Session.h"
+#include "../include/Session.h"
 
 CSession::CSession() {}
 

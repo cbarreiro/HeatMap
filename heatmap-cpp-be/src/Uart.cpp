@@ -1,4 +1,4 @@
-#include "../headers/Uart.h"
+#include "../include/Uart.h"
 
 CUart::CUart() {
     // Initialize GPIO and filestream

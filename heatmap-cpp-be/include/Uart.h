@@ -4,7 +4,7 @@
 
 using namespace std;
 class CUart {
-   private:    
+   private:
     char uart0_filestream;
 
     int rx_length,  // Receiving buffer length
@@ -21,8 +21,8 @@ class CUart {
     float f_digital_1,  // Digital data to nearest degree
         f_digital_2,    // Digital data to nearest 0.0625 of a degree
         digi_temp;      // Digital temperature
-        
-    int EXIT_FLAG;  // Process exit flag
+
+    int EXIT_FLAG = false;  // Process exit flag
 
    public:
     CUart();   // Constructor

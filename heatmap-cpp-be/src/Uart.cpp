@@ -32,7 +32,8 @@ void CUart::uartRx(void) {
         rx_length = serRead(uart0_filestream, data, 1);
 
         // Either bad rx_length (-1) or empty (0)
-        if (rx_length <= 0) printf("Error reading form UART: %d\n", rx_length);
+        if (rx_length <= 0) {
+        }  // printf("Error reading from UART: %d\n", uart0_filestream);
 
         // If data in buffer is not yet valid
         else if (data[0] != '.') {
@@ -42,8 +43,10 @@ void CUart::uartRx(void) {
         }
 
         // If data in buffer is valid
-        else if (data[0] = '.') {
-            if (rx_buffer[0] = 'N') {
+        else if (data[0] == '.') {
+            if (rx_buffer[0] == 'N') {
+                printf("success?\n");
+
                 // 2nd element of rx_buffer contains the node number
                 // This converts that node number from char to int
                 id = rx_buffer[1] - '0';
@@ -55,6 +58,7 @@ void CUart::uartRx(void) {
 
                 // Digital conversion
                 char* pEnd;
+
                 copy(rx_buffer + 12, rx_buffer + 16,
                      digital + 0);  // Copy digital data into 'digital' string
                 f_digital_1 = strtol(digital, &pEnd,
@@ -75,11 +79,13 @@ void CUart::uartRx(void) {
                 // Reset rx_buffer
                 memset(rx_buffer, 0, sizeof(rx_buffer));
             }
-        }
 
-        // Otherwise, unhandled error
-        else {
-            printf("Unhandled error.\n");
+            // Otherwise, unhandled error
+            else {
+                printf("Unhandled error.\n");
+            }
+
+            iter = 0;  // Reset iterator
         }
     }
 }

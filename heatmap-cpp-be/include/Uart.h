@@ -3,12 +3,13 @@
 #include "stdafx.h"
 
 using namespace std;
+
 class CUart {
    private:
     char uart0_filestream;
 
     int rx_length,  // Receiving buffer length
-        iter;       // Buffer iterator
+        iter = 0;       // Buffer iterator
 
     char rx_buffer[256],  // Receiver buffer
         tx_buffer[20],    // Transmit buffer
@@ -20,7 +21,9 @@ class CUart {
 
     float f_digital_1,  // Digital data to nearest degree
         f_digital_2,    // Digital data to nearest 0.0625 of a degree
-        digi_temp;      // Digital temperature
+        digi_temp,      // Digital temperature
+        ana_proc,       // Analog processed to be stored
+        digi_proc;      // Digital processed to be stored
 
     int EXIT_FLAG = false;  // Process exit flag
 
@@ -29,7 +32,7 @@ class CUart {
     ~CUart();  // Destructor
 
     vector<pair<float, float>>
-        temp_data;  // Temperature data vector, each node represented by vector
+        temp_data = vector<pair<float, float>>(36);  // Temperature data vector, each node represented by vector
                     // element and each element has a pair of values (analog and
                     // digital)
 

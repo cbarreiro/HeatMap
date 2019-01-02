@@ -45,8 +45,6 @@ void CUart::uartRx(void) {
         // If data in buffer is valid
         else if (data[0] == '.') {
             if (rx_buffer[0] == 'N') {
-                printf("success?\n");
-
                 // 2nd element of rx_buffer contains the node number
                 // This converts that node number from char to int
                 id = rx_buffer[1] - '0';

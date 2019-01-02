@@ -1,6 +1,7 @@
 #include "../include/stdafx.h"
 
 int main() {
+    /* UART testing
     CUart uart_test;  // Test CUart object
     int count = 0;
 
@@ -10,18 +11,19 @@ int main() {
     }
 
     uart_test.~CUart();  // Terminate
+    */
 
-    /* Below kept as testing space for mysql
-        // Instantiate session object 'test'
-        CSession test;
+    // MYSQL testing
 
-        // Initialize 'test'
-        test.initSession();
+    // Instantiate session object 'test'
+    CSession test;
 
-        while (1) {
-        };
+    // Initialize 'test'
+    test.initSession();
 
-        // Destructor
-        test.~CSession();
-        */
+    while (1) {
+    };
+
+    // Destructor
+    test.~CSession();
 }

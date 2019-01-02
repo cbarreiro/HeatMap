@@ -2,27 +2,32 @@
 
 #include "stdafx.h"
 
+#include "mysql_connection.h"
+
 #define FAIL 0
 #define PASS 1
+
+using namespace std;
 
 class CSession {
    private:
     time_t sessionStart;
     time_t sessionEnd;
 
+    // SQL access pointers
     sql::Driver *sessDriver;
     sql::Connection *sessConn;
     sql::Statement *sessStmt;
     sql::ResultSet *sessRes;
 
-    std::string server, username, password;
+    string server, username, password;
 
-    std::string portNumber;
+    string portNumber;
 
    public:
-    int check = PASS;  ///< Session init status
+    int check = PASS;  // Session init status
 
-    bool EXIT_FLAG;  ///< The flag used to close main
+    bool EXIT_FLAG;  // The flag used to close main
 
     /** @brief Constructor
      *

@@ -1,5 +1,5 @@
 #include <fcntl.h>
-#include <mysql/mysql.h>
+//#include <mysql/mysql.h>
 #include <pigpio.h>
 #include <stdio.h>
 #include <stdlib.h>

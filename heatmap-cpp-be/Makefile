@@ -8,8 +8,8 @@ OBJ_DIR = obj
 SRC = $(wildcard $(SRC_DIR)/*.cpp)
 OBJ = $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
-CFLAGS += `mysql_config --cflags` -std=c++11 -I/usr/include/
-LDFLAGS += `mysql_config --libs` -std=c++11 -lpigpio
+CFLAGS += -std=c++11 -I/usr/include/
+LDFLAGS += -pthread -std=c++11 -lpigpio
 
 .PHONY: all clean
 

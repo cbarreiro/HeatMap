@@ -40,7 +40,7 @@ void CSession::initSession(void) {
             sessConn = sessDriver->connect(server, username, password);
 
             // Connect to database
-            sessConn->setSchema("test");
+            sessConn->setSchema("mysql");
 
             // Do something to the database
             sessStmt = sessConn->createStatement();
@@ -56,6 +56,7 @@ void CSession::initSession(void) {
             delete sessRes;
             delete sessStmt;
             delete sessConn;
+            
         } catch (sql::SQLException &e) {
             cout << "# ERR: SQLException in " << __FILE__;
             cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << endl;

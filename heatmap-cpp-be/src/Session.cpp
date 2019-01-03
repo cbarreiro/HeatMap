@@ -5,7 +5,7 @@
 #include "../include/Session.h"
 
 CSession::CSession() {
-    driver = get_driver_instance();  // Retrieve instance of Connection from
+    sessDriver = get_driver_instance();  // Retrieve instance of Connection from
                                      // Driver object
 }
 
@@ -22,38 +22,48 @@ void CSession::initSession(void) {
 
     // Make local connection
     if (connChoice == "Y" || connChoice == "y") {
-        // Specify port number
-        std::cout << "Specify port for local connection:";
-        std::cin >> portNumber;
-        server = "tcp://127.0.0.1:" + portNumber;
+        
+        try {
+            // Specify port number
+            std::cout << "Specify port for local connection:";
+            std::cin >> portNumber;
+            server = "tcp://127.0.0.1:" + portNumber;
 
-        // Specify credentials
-        std::cout << std::endl << "Enter your username:";
-        std::cin >> username;
+            // Specify credentials
+            std::cout << std::endl << "Enter your username:";
+            std::cin >> username;
 
-        std::cout << std::endl << "Enter your password:";
-        std::cin >> password;
+            std::cout << std::endl << "Enter your password:";
+            std::cin >> password;
 
-        // Create connection object
-        sessConn = sessDriver->connect(server, username, password);
+            // Create connection object
+            sessConn = sessDriver->connect(server, username, password);
 
-        // Connect to database
-        sessConn->setSchema("test");
+            // Connect to database
+            sessConn->setSchema("test");
 
-        // Do something to the database
-        sessStmt = con->createStatement();
-        sessRes = sessStmt->executeQuery("SELECT 'HEY' AS _message");
-        while (sessRes->next()) {
-            cout << "\t... MySQL replies: ";
-            cout << res->getString("_message") << endl;
-            cout << "\t... MySQL says it again: ";
-            cout << res->getString(1) << endl;
+            // Do something to the database
+            sessStmt = sessConn->createStatement();
+            sessRes = sessStmt->executeQuery("SELECT 'HEY' AS _message");
+            while (sessRes->next()) {
+                cout << "\t... MySQL replies: ";
+                cout << sessRes->getString("_message") << endl;
+                cout << "\t... MySQL says it again: ";
+                cout << sessRes->getString(1) << endl;
+            }
+
+            // Delete instances
+            delete sessRes;
+            delete sessStmt;
+            delete sessConn;
+        } catch (sql::SQLException &e) {
+            cout << "# ERR: SQLException in " << __FILE__;
+            cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << endl;
+            cout << "# ERR: " << e.what();
+            cout << " (MYSQL error code :" << e.getErrorCode();
+            cout << ", SQLState: " << e.getSQLState() << " )" << endl;
         }
-
-        // Delete instances
-        delete sessRes;
-        delete sessStmt;
-        delete sessConn;
+        
 
     } else if (connChoice == "N" || connChoice == "n")
         std::cout << "Not yet implemented";

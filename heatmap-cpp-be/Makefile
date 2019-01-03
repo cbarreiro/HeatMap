@@ -9,7 +9,7 @@ SRC = $(wildcard $(SRC_DIR)/*.cpp)
 OBJ = $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 CFLAGS += -std=c++11 -I/usr/include/
-LDFLAGS += -pthread -std=c++11 -lpigpio
+LDFLAGS += -pthread -std=c++11 -lpigpio -lmysqlcppconn
 
 .PHONY: all clean
 

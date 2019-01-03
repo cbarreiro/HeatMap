@@ -44,7 +44,7 @@ void CSession::initSession(void) {
 
             // Do something to the database
             sessStmt = sessConn->createStatement();
-            sessRes = sessStmt->executeQuery("SELECT 'HEY' AS _message");
+            sessRes = sessStmt->executeQuery("SELECT 'HEYY' AS _message");
             while (sessRes->next()) {
                 cout << "\t... MySQL replies: ";
                 cout << sessRes->getString("_message") << endl;

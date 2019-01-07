@@ -11,8 +11,12 @@ using namespace std;
 
 class CSession {
    private:
-    time_t sessionStart;
-    time_t sessionEnd;
+    time_t sessStart;
+    time_t sessEnd;
+
+    time_t sessDate;  // Session date
+
+    string dateStr;  // Session date in string form
 
     // SQL access pointers
     sql::Driver *sessDriver;
@@ -37,6 +41,10 @@ class CSession {
     CSession();
 
     /** @brief Destructor
+     *
+     * NOTE: Make sure to clean up all SQL handlers EXCEPT Driver after
+     * completing a session. Refer to:
+     * https://dev.mysql.com/doc/connector-cpp/1.1/en/connector-cpp-examples-connecting.html
      *
      * @param void
      * @return void
@@ -63,4 +71,11 @@ class CSession {
      * @return void
      */
     void termSession(void);
+
+    /** @brief Checks if a table exists for the current day
+     *
+     * @param void
+     * @return int
+     */
+    int tableChk(void);
 };

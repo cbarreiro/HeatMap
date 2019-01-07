@@ -6,10 +6,27 @@
 
 CSession::CSession() {
     sessDriver = get_driver_instance();  // Retrieve instance of Connection from
-                                     // Driver object
+                                         // Driver object
+
+    // Get date of session
+    time(&sessDate);
+    tm *tm;
+    char dateArr[10];
+    tm = localtime(&sessDate);
+
+    strftime(dateArr, 10, "%d%b%Y", tm);  // Store workable format in dateArr
+
+    dateStr(dateArr);  // String-ify char array
 }
 
-CSession::~CSession() { EXIT_FLAG = true; }
+CSession::~CSession() {
+    // Delete all handlers except Driver (handled by SQL)
+    delete sessConn;
+    delete sessStmt;
+    delete sessRes;
+
+    EXIT_FLAG = true;
+}
 
 void CSession::initSession(void) {
     std::string connChoice = "";
@@ -22,7 +39,6 @@ void CSession::initSession(void) {
 
     // Make local connection
     if (connChoice == "Y" || connChoice == "y") {
-        
         try {
             // Specify port number
             std::cout << "Specify port for local connection:";
@@ -56,7 +72,7 @@ void CSession::initSession(void) {
             delete sessRes;
             delete sessStmt;
             delete sessConn;
-            
+
         } catch (sql::SQLException &e) {
             cout << "# ERR: SQLException in " << __FILE__;
             cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << endl;
@@ -64,10 +80,36 @@ void CSession::initSession(void) {
             cout << " (MYSQL error code :" << e.getErrorCode();
             cout << ", SQLState: " << e.getSQLState() << " )" << endl;
         }
-        
 
     } else if (connChoice == "N" || connChoice == "n")
         std::cout << "Not yet implemented";
+}
+
+int CSession::tableChk(void) {
+    // TODO - Not sure if SQLString object can be concatenated, so using hackish
+    // workaround for now
+    string tableChk = "SHOW TABLES LIKE '" + dateStr + "'";
+    sql::SQLString tableChkQuery(tableChk);
+
+    // Prepare statement
+    sessStmt = sessConn->createStatement();
+
+    // Try to execute query
+    try {
+        sessRes = sessStmt->executeQuery(tableChkQuery)
+    } catch (sql::SQLException e) {
+        cout << "# ERR: SQLException in " << __FILE__;
+        cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << endl;
+        cout << "# ERR: " << e.what();
+        cout << " (MYSQL error code :" << e.getErrorCode();
+        cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+
+        // Any exception return 0
+        return 0;
+    }
+
+    // If no exception...
+    return 1;
 }
 
 void CSession::termSession(void) {}

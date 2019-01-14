@@ -33,6 +33,8 @@ class CSession {
 
     bool EXIT_FLAG;  // The flag used to close main
 
+    CUart *sessUart;  // Session UART connection
+
     /** @brief Constructor
      *
      * @param void
@@ -72,10 +74,24 @@ class CSession {
      */
     void termSession(void);
 
+    /** @brief Collect data into buffer
+     *
+     * @param void
+     * @return void
+     */
+    void collect(void);
+
+    /** @brief Make table if not existent
+     *
+     * @param void
+     * @return int flag to indicate successful SQL operation
+     */
+    int makeTable(void);
+
     /** @brief Checks if a table exists for the current day
      *
      * @param void
-     * @return int
+     * @return int flag to indicate successful SQL operation
      */
-    int tableChk(void);
+    int checkTable(void);
 };

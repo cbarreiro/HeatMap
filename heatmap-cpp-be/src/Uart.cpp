@@ -22,6 +22,10 @@ CUart::~CUart() {
     EXIT_FLAG = true;
 }
 
+void CUart::resetTempBuf(void) {
+    tempData = vector<pair<float, float>>(36, std::make_pair(-300.0, -300.0));
+}
+
 void CUart::uartRx(void) {
     // If channel is open
     if (uart0_filestream != -1) {
@@ -29,53 +33,53 @@ void CUart::uartRx(void) {
         int id = -1;
 
         // Read '1' bytes from 'uart0_filestream' to 'data'
-        rx_length = serRead(uart0_filestream, data, 1);
+        rxLen = serRead(uart0_filestream, data, 1);
 
-        // Either bad rx_length (-1) or empty (0)
-        if (rx_length <= 0) {
+        // Either bad rxLen (-1) or empty (0)
+        if (rxLen <= 0) {
         }  // printf("Error reading from UART: %d\n", uart0_filestream);
 
         // If data in buffer is not yet valid
         else if (data[0] != '.') {
-            // Load 'data' into next element in 'rx_buffer'
-            rx_buffer[iter] = data[0];
+            // Load 'data' into next element in 'rxBuf'
+            rxBuf[iter] = data[0];
             iter++;  // Increment iterator
         }
 
         // If data in buffer is valid
         else if (data[0] == '.') {
-            if (rx_buffer[0] == 'N') {
-                // 2nd element of rx_buffer contains the node number
+            if (rxBuf[0] == 'N') {
+                // 2nd element of rxBuf contains the node number
                 // This converts that node number from char to int
-                id = rx_buffer[1] - '0';
+                id = rxBuf[1] - '0';
 
                 // Analog conversion
-                analog = string(rx_buffer).substr(4, 5);
+                analog = string(rxBuf).substr(4, 5);
                 stringstream stream;
                 stream << analog;
 
                 // Digital conversion
                 char* pEnd;
 
-                copy(rx_buffer + 12, rx_buffer + 16,
+                copy(rxBuf + 12, rxBuf + 16,
                      digital + 0);  // Copy digital data into 'digital' string
-                f_digital_1 = strtol(digital, &pEnd,
-                                     16);  // digital data to nearest degree
-                                           // from string to long int
-                f_digital_2 = strtol(pEnd, &pEnd,
-                                     16);  // digital data to nearest 0.0625 of
-                                           // a degree from string to long int
+                fDigi1 = strtol(digital, &pEnd,
+                                16);  // digital data to nearest degree
+                                      // from string to long int
+                fDigi2 = strtol(pEnd, &pEnd,
+                                16);  // digital data to nearest 0.0625 of
+                                      // a degree from string to long int
 
                 // Consolidate digital temperature
-                digi_temp = f_digital_1 + f_digital_2 * 0.0625;
+                digiTemp = fDigi1 + fDigi2 * 0.0625;
 
-                // Reference temp_data's 'id'th element, and loads analog
+                // Reference tempData's 'id'th element, and loads analog
                 // into first of the pair, and digital into second of the pair
-                stream >> temp_data[id].first;
-                temp_data[id].second = digi_temp;
+                stream >> tempData[id].first;
+                tempData[id].second = digiTemp;
 
-                // Reset rx_buffer
-                memset(rx_buffer, 0, sizeof(rx_buffer));
+                // Reset rxBuf
+                memset(rxBuf, 0, sizeof(rxBuf));
             }
 
             // Otherwise, unhandled error

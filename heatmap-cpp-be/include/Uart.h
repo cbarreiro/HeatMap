@@ -57,13 +57,6 @@ class CUart {
      */
     void termUart(void);
 
-    /* @brief Terminates current UART instance
-     *
-     * @param void
-     * @return void
-     */
-    void termUart(void);
-
     /* @brief Wipe and dummify temperature buffer
      *
      * @param void

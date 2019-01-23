@@ -6,6 +6,10 @@
 
 #define FAIL 0
 #define PASS 1
+#define TRUE 1
+#define FALSE 0
+
+class CUart;	// Forward declaration due to cross referrencing
 
 using namespace std;
 
@@ -15,8 +19,6 @@ class CSession {
     time_t sessEnd;
 
     time_t sessDate;  // Session date
-
-    string dateStr;  // Session date in string form
 
     // SQL access pointers
     sql::Driver *sessDriver;
@@ -28,12 +30,14 @@ class CSession {
 
     string portNumber;
 
-   public:
+   public:   
+    string dateStr;  // Session date in string form
+    
     int check = PASS;  // Session init status
 
     bool EXIT_FLAG;  // The flag used to close main
 
-    CUart *sessUart;  // Session UART connection
+    CUart* sessUart;  // Session UART connection
 
     /** @brief Constructor
      *

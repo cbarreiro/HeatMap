@@ -1,3 +1,5 @@
+#pragma once
+
 #include <fcntl.h>
 //#include <mysql/mysql.h>
 #include <pigpio.h>
@@ -20,5 +22,5 @@
 #include <cppconn/statement.h>
 
 // modules here
-#include "Session.h"
 #include "Uart.h"
+#include "Session.h"

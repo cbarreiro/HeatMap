@@ -4,6 +4,7 @@
  */
 #include "../include/Session.h"
 
+
 CSession::CSession() {
     sessDriver = get_driver_instance();  // Retrieve instance of Connection from
                                          // Driver object
@@ -16,9 +17,9 @@ CSession::CSession() {
 
     strftime(dateArr, 10, "%d%b%Y", tm);  // Store workable format in dateArr
 
-    dateStr(dateArr);  // String-ify char array
+    dateStr = dateArr;  // String-ify char array
 
-    sessUart = new CUart;  // Initialize new session UART
+    CUart * sessUart = new CUart;  // Initialize new session UART
 }
 
 CSession::~CSession() {
@@ -58,23 +59,7 @@ void CSession::initSession(void) {
             sessConn = sessDriver->connect(server, username, password);
 
             // Connect to database
-            sessConn->setSchema("mysql");
-
-            // Do something to the database
-            sessStmt = sessConn->createStatement();
-            sessRes = sessStmt->executeQuery("SELECT 'HEYY' AS _message");
-            while (sessRes->next()) {
-                cout << "\t... MySQL replies: ";
-                cout << sessRes->getString("_message") << endl;
-                cout << "\t... MySQL says it again: ";
-                cout << sessRes->getString(1) << endl;
-            }
-
-            // Delete instances
-            delete sessRes;
-            delete sessStmt;
-            delete sessConn;
-
+            sessConn->setSchema("heatmap");
         } catch (sql::SQLException& e) {
             cout << "# ERR: SQLException in " << __FILE__;
             cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << endl;
@@ -90,15 +75,28 @@ void CSession::initSession(void) {
 int CSession::checkTable(void) {
     // TODO - Not sure if SQLString object can be concatenated, so using hackish
     // workaround for now
+    int exist = -1;
+    
     string tableChkStmt = "SHOW TABLES LIKE '" + dateStr + "'";
-    sql::SQLString tableChkQuery(tableChkStmt);
+    sql::SQLString tableChkQuery(tableChkStmt);    
 
     // Prepare statement
     sessStmt = sessConn->createStatement();
 
     // Try to execute query
     try {
-        sessRes = sessStmt->executeQuery(tableChkQuery)
+        sessRes = sessStmt->executeQuery(tableChkQuery); // Execute query
+        
+        // Check to see if the table queried is within the result set (and ONLY that table)        
+        if (sessRes->next())
+            exist = 1;
+        else
+            exist = 0;
+            
+        delete sessConn;
+        delete sessStmt;
+        return exist;
+        
     } catch (sql::SQLException e) {
         cout << "# ERR: SQLException in " << __FILE__;
         cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << endl;
@@ -107,39 +105,38 @@ int CSession::checkTable(void) {
         cout << ", SQLState: " << e.getSQLState() << " )" << endl;
 
         // Any exception return 0
+        delete sessConn;
         delete sessStmt;
-        return 0;
     }
 
     // If no exception...
-    delete sessStmt;
-    return 1;
+    
 }
 
 void CSession::collect(void) {
     // Initialize vector with dummy data
-    sessUart.resetTempBuf();
+    sessUart->resetTempBuf();
 
     // First instance of collection requires a true collector flag
     bool collectorFlag = TRUE;
 
-    while (collecorFlag) {
+    while (collectorFlag) {
         // Collect some data from UART
-        sessUart.uartRx;
+        sessUart->uartRx();
 
         // Clone a flattened vector from tempData and check if all the values
         // are non-dummy, if so end the collection
         vector<float> flatTemp;
 
-        transform(sessUart.tempData.begin(),
-                  sessUart.tempData.end(),  // Flatten vector
+        transform(sessUart->tempData.begin(),
+                  sessUart->tempData.end(),  // Flatten vector
                   back_inserter(flatTemp),
                   [&flatTemp](const pair<float, float>& p) {
                       flatTemp.push_back(p.first);
                       return p.second;
                   });
 
-        if (std::none_of(flatTemp).begin(),
+        if (std::none_of(flatTemp.begin(),
             flatTemp.end(),  // Check for non-dummy values
             [](float i) { return i != -300.0; }))
             collectorFlag = FALSE;

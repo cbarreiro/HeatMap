@@ -9,7 +9,7 @@
 #define TRUE 1
 #define FALSE 0
 
-class CUart;	// Forward declaration due to cross referrencing
+class CUart;  // Forward declaration due to cross referrencing
 
 using namespace std;
 
@@ -30,14 +30,16 @@ class CSession {
 
     string portNumber;
 
-   public:   
+   public:
     string dateStr;  // Session date in string form
-    
+
     int check = PASS;  // Session init status
 
     bool EXIT_FLAG;  // The flag used to close main
 
-    CUart* sessUart;  // Session UART connection
+    CUart *sessUart;  // Session UART connection
+
+    int nodeCnt;  // Number of active nodes expected in the session
 
     /** @brief Constructor
      *

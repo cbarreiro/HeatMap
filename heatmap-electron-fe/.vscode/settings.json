@@ -1,6 +1,7 @@
 {
     "git.ignoreLimitWarning": true,
     "files.associations": {
-        "xstring": "cpp"
+        "xstring": "cpp",
+        "vector": "cpp"
     }
 }

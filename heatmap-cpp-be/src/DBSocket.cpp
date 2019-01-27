@@ -87,7 +87,6 @@ int CDBSocket::checkTable(string dateString) {
         // Delete handlers
         delete dbConn;
         delete dbStmt;
-        return exist;
 
     } catch (sql::SQLException e) {
         cout << "# ERR: SQLException in " << __FILE__;

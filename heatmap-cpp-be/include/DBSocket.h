@@ -2,6 +2,8 @@
 
 #include "stdafx.h"
 
+using namespace std;
+
 class CDBSocket {
    private:
     // SQL access pointers
@@ -36,4 +38,4 @@ class CDBSocket {
      * @return int flag to indicate successful SQL operation
      */
     int checkTable(string dateString);
-}
+};

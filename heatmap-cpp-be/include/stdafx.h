@@ -15,6 +15,8 @@
 #include <string>
 #include <vector>
 
+#include <cmath>
+
 // threading
 #include <mutex>
 #include <thread>

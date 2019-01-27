@@ -21,7 +21,7 @@ int main() {
     // Initialize 'test'
     test.initSession();
 
-    if (test.checkTable())
+    if (test.sessSock->checkTable(test.dateStr))
         cout << "Table for " << test.dateStr << " exists." << endl;
     else
         cout << "Table for " << test.dateStr << " does not exist." << endl;

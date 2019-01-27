@@ -1,8 +1,9 @@
 #include "../include/DBSocket.h"
 
 CDBSocket::CDBSocket() {
-    dbDriver = get_driver_instance();  // Retrieve instance of Connection from
+    this->dbDriver = get_driver_instance();  // Retrieve instance of Connection from
                                        // Driver object
+    cout << "Connection driver version " << dbDriver->getMajorVersion() << "." << dbDriver->getMinorVersion() << endl;    
 }
 
 CDBSocket::~CDBSocket() {
@@ -14,11 +15,17 @@ CDBSocket::~CDBSocket() {
 
 void CDBSocket::initDBConn(string serv, string uname, string pass,
                            string date) {
+    cout << "Trying to establish connection to " << serv << " ..." << endl;
+    
     try {
-        // Create connection object
+        // Create connection object        
         dbConn = dbDriver->connect(serv, uname, pass);
+        cout << "Connection established, selecting table..." << endl;              
+        
         // Connect to database
         dbConn->setSchema("heatmap");
+        cout << "Table selected!" << endl;
+        
     } catch (sql::SQLException& e) {
         cout << "# ERR: SQLException in " << __FILE__;
         cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << endl;
@@ -26,6 +33,8 @@ void CDBSocket::initDBConn(string serv, string uname, string pass,
         cout << " (MYSQL error code :" << e.getErrorCode();
         cout << ", SQLState: " << e.getSQLState() << " )" << endl;
     }
+    
+    cout << "Connection established!" << endl;
 
     if (this->makeTable(date)) {
         cout << "Table for " << date << " successfully created!" << endl;

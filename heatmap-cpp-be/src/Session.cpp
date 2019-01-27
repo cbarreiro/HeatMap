@@ -5,13 +5,13 @@
 #include "../include/Session.h"
 
 CSession::CSession() {
+    sessSock = new CDBSocket;
+    sessCol = new CCollector;
     this->getDate();
     nodeCnt = 8;  // TODO - dynamic node detection (current node count is 8)
 }
 
-CSession::~CSession() {
-    CDBSocket* sessSock = new CDBSocket;
-    CCollector* sessCol = new CCollector;
+CSession::~CSession() {   
 }
 
 void CSession::initSession(void) {
@@ -31,10 +31,10 @@ void CSession::initSession(void) {
         server = "tcp://127.0.0.1:" + portNumber;
 
         // Specify credentials
-        std::cout << std::endl << "Enter your username:";
+        std::cout << "Enter your username:";
         std::cin >> username;
 
-        std::cout << std::endl << "Enter your password:";
+        std::cout << "Enter your password:";
         std::cin >> password;
 
         sessSock->initDBConn(server, username, password, dateStr);

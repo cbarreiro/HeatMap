@@ -17,11 +17,10 @@ using namespace std;
 
 class CSession {
    private:
-    time_t sessDate;  // Session date
-
-    string server, username, password, portNumber;  // Access credentials
+    time_t sessDate;  // Session date   
 
    public:
+    string server, username, password, portNumber;  // Access credentials
     string dateStr;  // Session date in string form
 
     int check = PASS;  // Session init status

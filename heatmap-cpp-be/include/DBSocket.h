@@ -2,6 +2,8 @@
 
 #include "stdafx.h"
 
+#include "mysql_connection.h"
+
 using namespace std;
 
 class CDBSocket {
@@ -11,8 +13,11 @@ class CDBSocket {
     sql::Connection *dbConn;
     sql::Statement *dbStmt;
     sql::ResultSet *dbRes;
+    
+    
 
-   public:
+   public:    
+   int test;
     CDBSocket();   // Constructor
     ~CDBSocket();  // Destructor
 

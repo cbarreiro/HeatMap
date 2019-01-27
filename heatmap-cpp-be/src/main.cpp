@@ -20,13 +20,11 @@ int main() {
 
     // Initialize 'test'
     test.initSession();
-    
-    if(test.checkTable())
+
+    if (test.checkTable())
         cout << "Table for " << test.dateStr << " exists." << endl;
     else
         cout << "Table for " << test.dateStr << " does not exist." << endl;
-    
-    
 
     while (1) {
     };

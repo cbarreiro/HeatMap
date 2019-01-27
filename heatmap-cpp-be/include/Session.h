@@ -9,26 +9,17 @@
 #define TRUE 1
 #define FALSE 0
 
-class CUart;  // Forward declaration due to cross referrencing
+// Forward declare to avoid cross referencing issues
+class CDBSocket;
+class CCollector;
 
 using namespace std;
 
 class CSession {
    private:
-    time_t sessStart;
-    time_t sessEnd;
-
     time_t sessDate;  // Session date
 
-    // SQL access pointers
-    sql::Driver *sessDriver;
-    sql::Connection *sessConn;
-    sql::Statement *sessStmt;
-    sql::ResultSet *sessRes;
-
-    string server, username, password;
-
-    string portNumber;
+    string server, username, password, portNumber;  // Access credentials
 
    public:
     string dateStr;  // Session date in string form
@@ -37,9 +28,10 @@ class CSession {
 
     bool EXIT_FLAG;  // The flag used to close main
 
-    CUart *sessUart;  // Session UART connection
-
     int nodeCnt;  // Number of active nodes expected in the session
+
+    CDBSocket *sessSock;
+    CCollector *sessCol;
 
     /** @brief Constructor
      *
@@ -59,13 +51,6 @@ class CSession {
      */
     ~CSession();
 
-    /** @brief Get/load session start or end
-     *
-     * @param time
-     * @return void
-     */
-    void loadTime(time_t now);
-
     /** @brief Initializes database connection
      *
      * @param void
@@ -80,24 +65,10 @@ class CSession {
      */
     void termSession(void);
 
-    /** @brief Collect data into buffer
+    /** @brief Get session date
      *
      * @param void
      * @return void
      */
-    void collect(void);
-
-    /** @brief Make table if not existent
-     *
-     * @param void
-     * @return int flag to indicate successful SQL operation
-     */
-    int makeTable(void);
-
-    /** @brief Checks if a table exists for the current day
-     *
-     * @param void
-     * @return int flag to indicate successful SQL operation
-     */
-    int checkTable(void);
+    void getDate(void);
 };

@@ -11,8 +11,7 @@ CSession::CSession() {
     nodeCnt = 8;  // TODO - dynamic node detection (current node count is 8)
 }
 
-CSession::~CSession() {   
-}
+CSession::~CSession() {}
 
 void CSession::initSession(void) {
     std::string connChoice = "";

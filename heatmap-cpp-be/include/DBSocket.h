@@ -13,11 +13,9 @@ class CDBSocket {
     sql::Connection *dbConn;
     sql::Statement *dbStmt;
     sql::ResultSet *dbRes;
-    
-    
 
-   public:    
-   int test;
+   public:
+    int test;
     CDBSocket();   // Constructor
     ~CDBSocket();  // Destructor
 

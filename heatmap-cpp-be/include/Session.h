@@ -17,7 +17,7 @@ using namespace std;
 
 class CSession {
    private:
-    time_t sessDate;  // Session date   
+    time_t sessDate;  // Session date
 
    public:
     string server, username, password, portNumber;  // Access credentials

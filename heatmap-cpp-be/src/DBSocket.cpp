@@ -3,8 +3,8 @@
 CDBSocket::CDBSocket() {
     this->dbDriver = get_driver_instance();  // Retrieve instance of Connection
                                              // from Driver object
-    cout << "Connection driver version " << dbDriver->getMajorVersion() << "."
-         << dbDriver->getMinorVersion() << endl;
+    std::cout << "Connection driver version " << dbDriver->getMajorVersion()
+              << "." << dbDriver->getMinorVersion() << endl;
 }
 
 CDBSocket::~CDBSocket() {
@@ -14,41 +14,38 @@ CDBSocket::~CDBSocket() {
     delete dbRes;
 }
 
-void CDBSocket::initDBConn(string serv, string uname, string pass,
-                           string date) {
-    cout << "Trying to establish connection to " << serv << " ..." << endl;
+void CDBSocket::initDBConn(std::string serv, std::string uname,
+                           std::string pass, std::string date) {
+    std::cout << "Trying to establish connection to " << serv << " ..." << endl;
 
     try {
         // Create connection object
         dbConn = dbDriver->connect(serv, uname, pass);
-        cout << "Connection established, selecting table..." << endl;
+        std::cout << "Connection established, selecting database..." << endl;
 
         // Connect to database
         dbConn->setSchema("heatmap");
-        cout << "Table selected!" << endl;
+        std::cout << "Database selected!" << endl;
 
     } catch (sql::SQLException& e) {
-        cout << "# ERR: SQLException in " << __FILE__;
-        cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << endl;
-        cout << "# ERR: " << e.what();
-        cout << " (MYSQL error code :" << e.getErrorCode();
-        cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+        ExpHandle("initDBConn", e);
     }
 
-    cout << "Connection established!" << endl;
+    std::cout << "Connection established!" << endl;
 
     if (this->makeTable(date)) {
-        cout << "Table for " << date << " successfully created!" << endl;
+        std::cout << "Table for " << date << " successfully created!" << endl;
     }
 }
 
-int CDBSocket::makeTable(string currString) {
+int CDBSocket::makeTable(std::string currstd::string) {
     // If table for the date is not found, one is created
-    if (!(this->checkTable(currString))) {
-        string tableMakStmt = "CREATE TABLE IF NOT EXISTS " + currString +
-                              "(stamp TIME, N1 float, N2 float, N3 float, N4 "
-                              "float, N5 float, N6 float, N7 float, N8 float);";
-        sql::SQLString tableMakQuery(tableMakStmt);
+    if (!(this->checkTable(currstd::string))) {
+        std::string tableMakStmt =
+            "CREATE TABLE IF NOT EXISTS " + currstd::string +
+            "(stamp TIME, N1 float, N2 float, N3 float, N4 "
+            "float, N5 float, N6 float, N7 float, N8 float);";
+        sql::SQLstd::string tableMakQuery(tableMakStmt);
 
         dbStmt = dbConn->createStatement();
 
@@ -62,26 +59,20 @@ int CDBSocket::makeTable(string currString) {
             return 1;  // New table created
 
         } catch (sql::SQLException e) {
-            cout << "# ERR: SQLException in " << __FILE__;
-            cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << endl;
-            cout << "# ERR: " << e.what();
-            cout << " (MYSQL error code :" << e.getErrorCode();
-            cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+            ExpHandle("makeTable", e);
 
             // Any exception return -1
-            delete dbConn;
-            delete dbStmt;
             return -1;  // Exception
         }
     } else
         return 0;  // Table already exists
 }
 
-int CDBSocket::checkTable(string dateString) {
-    // TODO - Not sure if SQLString object can be concatenated, so using hackish
-    // workaround for now
-    string tableChkStmt = "SHOW TABLES LIKE '" + dateString + "'";
-    sql::SQLString tableChkQuery(tableChkStmt);
+int CDBSocket::checkTable(std::string datestd::string) {
+    // TODO - Not sure if SQLstd::string object can be concatenated, so using
+    // hackish workaround for now
+    std::string tableChkStmt = "SHOW TABLES LIKE '" + datestd::string + "'";
+    sql::SQLstd::string tableChkQuery(tableChkStmt);
 
     // Prepare statement
     dbStmt = dbConn->createStatement();
@@ -99,15 +90,9 @@ int CDBSocket::checkTable(string dateString) {
         delete dbStmt;
 
     } catch (sql::SQLException e) {
-        cout << "# ERR: SQLException in " << __FILE__;
-        cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << endl;
-        cout << "# ERR: " << e.what();
-        cout << " (MYSQL error code :" << e.getErrorCode();
-        cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+        ExpHandle("checkTable", e);
 
         // Any exception return -1
-        delete dbConn;
-        delete dbStmt;
         return -1;
     }
 }

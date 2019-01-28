@@ -36,6 +36,8 @@ void CSession::initSession(void) {
         std::cout << "Enter your password:";
         std::cin >> password;
 
+        std::cout << endl;
+
         sessSock->initDBConn(server, username, password, dateStr);
 
     } else if (connChoice == "N" ||
@@ -53,6 +55,16 @@ void CSession::getDate(void) {
     strftime(dateArr, 10, "%d%b%Y", tm);  // Store workable format in dateArr
 
     dateStr = dateArr;  // String-ify char array
+}
+
+void loadData(void) {
+    // Collect data into collector buffer
+    sessCol->collect();
+
+    // Load into session buffer vector
+    for (int i = 0; i < sessCol->colBuf.size(); i++) {
+        this->sessBuf.push_back(sessCol->colBuf[i]);
+    }
 }
 
 // TODO - separate terminate from destructor (?)

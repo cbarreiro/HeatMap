@@ -4,8 +4,6 @@
 
 #include "mysql_connection.h"
 
-using namespace std;
-
 class CDBSocket {
    private:
     // SQL access pointers
@@ -21,24 +19,26 @@ class CDBSocket {
 
     /** @brief Initailizes database connection
      *
-     * @param string server
-     * @param string username
-     * @param string password
+     * @param std::string server    server IP and port
+     * @param std::string username  username
+     * @param std::string password  password
+     * @param std::string date      date of session
      * @return void
      */
-    void initDBConn(string serv, string uname, string pass, string date);
+    void initDBConn(std::string serv, std::string uname, std::string pass,
+                    std::string date);
 
     /** @brief Make table if not existent
      *
-     * @param string formatted string of current date (e.g. 21Jan2019)
+     * @param std::string formatted std::string of current date (e.g. 21Jan2019)
      * @return int flag to indicate successful SQL operation
      */
-    int makeTable(string currString);
+    int makeTable(std::string currstd::string);
 
     /** @brief Checks if a table exists for the current day
      *
-     * @param string formatted string of current date (e.g. 21Jan2019)
+     * @param std::string formatted std::string of current date (e.g. 21Jan2019)
      * @return int flag to indicate successful SQL operation
      */
-    int checkTable(string dateString);
+    int checkTable(std::string datestd::string);
 };

@@ -13,24 +13,22 @@
 class CDBSocket;
 class CCollector;
 
-using namespace std;
-
 class CSession {
    private:
     time_t sessDate;  // Session date
 
-   public:
-    string server, username, password, portNumber;  // Access credentials
-    string dateStr;  // Session date in string form
+    std::vector<float> sessBuf;  // Temporary session buffer
 
-    int check = PASS;  // Session init status
+   public:
+    std::string server, username, password, portNumber;  // Access credentials
+    std::string dateStr;  // Session date in std::string form
 
     bool EXIT_FLAG;  // The flag used to close main
 
     int nodeCnt;  // Number of active nodes expected in the session
 
-    CDBSocket *sessSock;
-    CCollector *sessCol;
+    CDBSocket *sessSock;  // Session communication socket object
+    CCollector *sessCol;  // Session collector object
 
     /** @brief Constructor
      *
@@ -70,4 +68,11 @@ class CSession {
      * @return void
      */
     void getDate(void);
+
+    /** @brief Collects data, and loads data into session buffer
+     *
+     * @param void
+     * @return void
+     */
+    void loadData(void);
 };

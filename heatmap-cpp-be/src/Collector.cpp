@@ -1,7 +1,7 @@
 #include "../include/Collector.h"
 
 CCollector::CCollector() {
-    CUart* colUart = new CUart;  // Initialize collector UART connection
+    colUart = new CUart;  // Initialize collector UART connection
 }
 
 CCollector::~CCollector() {}

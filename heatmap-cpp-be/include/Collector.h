@@ -4,8 +4,6 @@
 
 class CUart;  // Forward declare to avoid cross referencing issues
 
-using namespace std;
-
 class CCollector {
    private:
     bool colExitFlag = 0;  // Exit flag
@@ -14,6 +12,7 @@ class CCollector {
     CUart *colUart;  // Collector UART connection object
 
     float colBuf[8];  // Collector buffer to receive valid temp data from UART
+                      // (data should be already sorted here)
 
     CCollector();   // Constructor
     ~CCollector();  // Destructor

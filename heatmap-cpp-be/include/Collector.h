@@ -1,3 +1,13 @@
+/**
+ * @file Collector.h
+ * @author Jing Huang (seojeung.h@gmail.com)
+ * @brief Collector header
+ * @version 0.1
+ * @date 2019-01-28
+ *
+ * @copyright Copyright (c) 2019
+ *
+ */
 #pragma once
 
 #include "stdafx.h"
@@ -14,13 +24,21 @@ class CCollector {
     float colBuf[8];  // Collector buffer to receive valid temp data from UART
                       // (data should be already sorted here)
 
-    CCollector();   // Constructor
-    ~CCollector();  // Destructor
-
-    /** @brief Collect data into local buffer
+    /**
+     * @brief Construct a new CCollector object
      *
-     * @param void
-     * @return void
+     */
+    CCollector();
+
+    /**
+     * @brief Destroy the CCollector object
+     *
+     */
+    ~CCollector();
+
+    /**
+     * @brief Collect data into local buffer
+     *
      */
     void collect(void);
 };

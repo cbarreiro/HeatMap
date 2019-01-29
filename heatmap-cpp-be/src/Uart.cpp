@@ -1,3 +1,13 @@
+/**
+ * @file Uart.cpp
+ * @author Jing Huang (seojeung.h@gmail.com)
+ * @brief UART Object
+ * @version 0.1
+ * @date 2019-01-28
+ *
+ * @copyright Copyright (c) 2019
+ *
+ */
 #include "../include/Uart.h"
 
 CUart::CUart() {

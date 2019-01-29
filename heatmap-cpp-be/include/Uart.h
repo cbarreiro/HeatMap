@@ -1,8 +1,16 @@
+/**
+ * @file Uart.h
+ * @author Jing Huang (seojeung.h@gmail.com)
+ * @brief UART header
+ * @version 0.1
+ * @date 2019-01-28
+ *
+ * @copyright Copyright (c) 2019
+ *
+ */
 #pragma once
 
 #include "stdafx.h"
-
-using namespace std;
 
 class CUart {
    private:
@@ -17,7 +25,7 @@ class CUart {
         digital[256],  // Digital buffer
         data[1];       // Data buffer
 
-    string analog;  // Analog data string
+    std::string analog;  // Analog data string
 
     float fDigi1,  // Digital data to nearest degree
         fDigi2,    // Digital data to nearest 0.0625 of a degree
@@ -31,37 +39,32 @@ class CUart {
     CUart();   // Constructor
     ~CUart();  // Destructor
 
-    vector<pair<float, float>> tempData = vector<pair<float, float>>(
+    std::vector<pair<float, float>> tempData = std::vector<pair<float, float>>(
         36);  // Temperature data vector, each node represented by vector
               // element and each element has a pair of values (analog and
               // digital)
 
-    /* @brief Receive from UART
+    /**
+     * @brief Receive from UART
      *
-     * @param void
-     * @return void
      */
     void uartRx(void);
 
-    /* @brief Transmit to UART
+    /**
+     * @brief Transmit to UART
      *
-     * @param void
-     * @return void
      */
     void uartTx(void);
 
-    /* @brief Terminates current UART instance
+    /**
+     * @brief Terminates current UART instance
      *
-     * @param void
-     * @return void
      */
     void termUart(void);
 
-    /* @brief Wipe and dummify temperature buffer
+    /**
+     * @brief Wipe and dummify temperature buffer
      *
-     * @param void
-     * @return void
      */
-
     void resetTempBuf(void);
 };

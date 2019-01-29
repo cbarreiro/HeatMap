@@ -1,3 +1,13 @@
+/**
+ * @file Session.h
+ * @author Jing Huang (seojeung.h@gmail.com)
+ * @brief Session header
+ * @version 0.1
+ * @date 2019-01-28
+ *
+ * @copyright Copyright (c) 2019
+ *
+ */
 #pragma once
 
 #include "stdafx.h"
@@ -30,49 +40,43 @@ class CSession {
     CDBSocket *sessSock;  // Session communication socket object
     CCollector *sessCol;  // Session collector object
 
-    /** @brief Constructor
+    /**
+     * @brief Construct a new CSession object
      *
-     * @param void
-     * @return void
      */
     CSession();
 
-    /** @brief Destructor
+    /**
+     * @brief Destroy the CSession object
      *
      * NOTE: Make sure to clean up all SQL handlers EXCEPT Driver after
      * completing a session. Refer to:
      * https://dev.mysql.com/doc/connector-cpp/1.1/en/connector-cpp-examples-connecting.html
      *
-     * @param void
-     * @return void
      */
     ~CSession();
 
-    /** @brief Initializes database connection
+    /**
+     * @brief Initializes session
      *
-     * @param void
-     * @return void
      */
     void initSession(void);
 
-    /** @brief Terminates database connection
+    /**
+     * @brief Terminates session
      *
-     * @param void
-     * @return void
      */
     void termSession(void);
 
-    /** @brief Get session date
+    /**
+     * @brief Loads the session's date
      *
-     * @param void
-     * @return void
      */
-    void getDate(void);
+    void loadDate(void);
 
-    /** @brief Collects data, and loads data into session buffer
+    /**
+     * @brief Loads data into session vector buffer
      *
-     * @param void
-     * @return void
      */
     void loadData(void);
 };

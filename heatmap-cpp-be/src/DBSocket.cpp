@@ -1,3 +1,13 @@
+/**
+ * @file DBSocket.cpp
+ * @author Jing Huang (seojeung.h@gmail.com)
+ * @brief DBSocket object
+ * @version 0.1
+ * @date 2019-01-28
+ *
+ * @copyright Copyright (c) 2019
+ *
+ */
 #include "../include/DBSocket.h"
 
 CDBSocket::CDBSocket() {
@@ -38,14 +48,14 @@ void CDBSocket::initDBConn(std::string serv, std::string uname,
     }
 }
 
-int CDBSocket::makeTable(std::string currstd::string) {
+int CDBSocket::makeTable(std::string currDateStr) {
     // If table for the date is not found, one is created
-    if (!(this->checkTable(currstd::string))) {
+    if (!(this->checkTable(currDateStr))) {
         std::string tableMakStmt =
-            "CREATE TABLE IF NOT EXISTS " + currstd::string +
+            "CREATE TABLE IF NOT EXISTS " + currDateStr +
             "(stamp TIME, N1 float, N2 float, N3 float, N4 "
             "float, N5 float, N6 float, N7 float, N8 float);";
-        sql::SQLstd::string tableMakQuery(tableMakStmt);
+        sql::SQLstring tableMakQuery(tableMakStmt);
 
         dbStmt = dbConn->createStatement();
 
@@ -68,11 +78,11 @@ int CDBSocket::makeTable(std::string currstd::string) {
         return 0;  // Table already exists
 }
 
-int CDBSocket::checkTable(std::string datestd::string) {
+int CDBSocket::checkTable(std::string currDateStr) {
     // TODO - Not sure if SQLstd::string object can be concatenated, so using
     // hackish workaround for now
-    std::string tableChkStmt = "SHOW TABLES LIKE '" + datestd::string + "'";
-    sql::SQLstd::string tableChkQuery(tableChkStmt);
+    std::string tableChkStmt = "SHOW TABLES LIKE '" + currDateStr + "'";
+    sql::SQLstring tableChkQuery(tableChkStmt);
 
     // Prepare statement
     dbStmt = dbConn->createStatement();

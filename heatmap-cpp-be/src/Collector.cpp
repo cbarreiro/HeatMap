@@ -1,3 +1,13 @@
+/**
+ * @file Collector.cpp
+ * @author Jing Huang (seojeung.h@gmail.com)
+ * @brief Collector object
+ * @version 0.1
+ * @date 2019-01-28
+ *
+ * @copyright Copyright (c) 2019
+ *
+ */
 #include "../include/Collector.h"
 
 CCollector::CCollector() {

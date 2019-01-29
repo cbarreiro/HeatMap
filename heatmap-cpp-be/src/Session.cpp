@@ -1,6 +1,13 @@
-/*
- * CSession src
- * - Contains Session class functionalities
+/**
+ * @file Session.cpp
+ * @author Jing Huang (seojeung.h@gmail.com)
+ * @brief Session object
+ * manages their threads
+ * @version 0.1
+ * @date 2019-01-28
+ *
+ * @copyright Copyright (c) 2019
+ *
  */
 #include "../include/Session.h"
 
@@ -45,7 +52,7 @@ void CSession::initSession(void) {
         std::cout << "Goodbye!";
 }
 
-void CSession::getDate(void) {
+void CSession::loadDate(void) {
     // Get date of session
     time(&sessDate);
     tm* tm;

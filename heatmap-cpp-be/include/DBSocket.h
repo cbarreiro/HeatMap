@@ -1,3 +1,13 @@
+/**
+ * @file DBSocket.h
+ * @author Jing Huang (seojeung.h@gmail.com)
+ * @brief DBSocket header
+ * @version 0.1
+ * @date 2019-01-28
+ *
+ * @copyright Copyright (c) 2019
+ *
+ */
 #pragma once
 
 #include "stdafx.h"
@@ -14,31 +24,43 @@ class CDBSocket {
 
    public:
     int test;
-    CDBSocket();   // Constructor
-    ~CDBSocket();  // Destructor
 
-    /** @brief Initailizes database connection
+    /**
+     * @brief Construct a new CDBSocket object
      *
-     * @param std::string server    server IP and port
-     * @param std::string username  username
-     * @param std::string password  password
-     * @param std::string date      date of session
-     * @return void
+     */
+    CDBSocket();
+
+    /**
+     * @brief Destroy the CDBSocket object
+     *
+     */
+    ~CDBSocket();
+
+    /**
+     * @brief Initiate the database connection
+     *
+     * @param serv Server IP
+     * @param uname Username
+     * @param pass Password
+     * @param date Date of session
      */
     void initDBConn(std::string serv, std::string uname, std::string pass,
                     std::string date);
 
-    /** @brief Make table if not existent
+    /**
+     * @brief Attempts to make a table corresponding to the current session date
      *
-     * @param std::string formatted std::string of current date (e.g. 21Jan2019)
-     * @return int flag to indicate successful SQL operation
+     * @param currDateStr The current date
+     * @return int Operation status
      */
-    int makeTable(std::string currstd::string);
+    int makeTable(std::string currDateStr);
 
-    /** @brief Checks if a table exists for the current day
+    /**
+     * @brief
      *
-     * @param std::string formatted std::string of current date (e.g. 21Jan2019)
-     * @return int flag to indicate successful SQL operation
+     * @param currDateStr The current date
+     * @return int Operation status
      */
-    int checkTable(std::string datestd::string);
+    int checkTable(std::string currDateStr);
 };
